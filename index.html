@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen de salud familiar</title>
+<style>
+  :root {
+    --vera: #0d9488;
+    --camila: #db2777;
+    --martina: #ea580c;
+    --isabella: #2563eb;
+    --bg: #f4f6f8;
+    --card-bg: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --alert-bg: #fef2f2;
+    --alert-border: #fecaca;
+    --alert-text: #b91c1c;
+    --ok-bg: #f0fdf4;
+    --ok-text: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding-bottom: 40px;
+  }
+
+  header.top {
+    background: linear-gradient(135deg, #0d9488, #0f766e);
+    color: #fff;
+    padding: 20px 18px 16px;
+    text-align: center;
+  }
+
+  header.top h1 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+  }
+
+  header.top .updated {
+    font-size: 0.95rem;
+    font-weight: 600;
+    opacity: 0.95;
+  }
+
+  header.top .disclaimer {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    opacity: 0.85;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  nav.jump {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #ffffffee;
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid #e5e7eb;
+    overflow-x: auto;
+  }
+
+  nav.jump a {
+    flex: 1 0 auto;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    background: #eef2f6;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 4px 14px 0;
+  }
+
+  section.category {
+    margin-top: 28px;
+    scroll-margin-top: 60px;
+  }
+
+  section.category > h2 {
+    font-size: 1.25rem;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  section.category > p.hint {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .person-block {
+    margin-bottom: 22px;
+  }
+
+  .person-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 10px;
+    padding-left: 2px;
+    border-left: 5px solid var(--accent);
+    padding-left: 8px;
+  }
+
+  .person-block[data-person="Vera"] { --accent: var(--vera); }
+  .person-block[data-person="Camila"] { --accent: var(--camila); }
+  .person-block[data-person="Martina"] { --accent: var(--martina); }
+  .person-block[data-person="Isabella"] { --accent: var(--isabella); }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .card-title {
+    font-weight: 700;
+    font-size: 1.02rem;
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
+
+  .field {
+    padding: 6px 0;
+    border-top: 1px solid #f1f3f5;
+  }
+
+  .field:first-of-type {
+    border-top: none;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .field-value {
+    display: block;
+    font-size: 0.98rem;
+    word-break: break-word;
+  }
+
+  .pill {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .pill.alert {
+    background: var(--alert-bg);
+    color: var(--alert-text);
+    border: 1px solid var(--alert-border);
+  }
+
+  .pill.ok {
+    background: var(--ok-bg);
+    color: var(--ok-text);
+  }
+
+  .note-alert {
+    margin-top: 10px;
+    background: var(--alert-bg);
+    border: 1px solid var(--alert-border);
+    color: var(--alert-text);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.92rem;
+    padding: 4px 0 0 8px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0 24px;
+    font-size: 0.82rem;
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .legend .dot.alert-dot { background: var(--alert-text); }
+
+  footer {
+    max-width: 640px;
+    margin: 30px auto 0;
+    padding: 0 14px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  hr.sep {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 26px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Resumen de salud familiar</h1>
+  <div class="updated">Actualizado el 10 de julio de 2026</div>
+  <div class="disclaimer">Esta página es una foto del momento en que se generó, no un panel en vivo. Para el estado más reciente, consulta con Vera.</div>
+</header>
+
+<nav class="jump">
+  <a href="#citas">Citas médicas</a>
+  <a href="#medicamentos">Medicamentos</a>
+  <a href="#recomendaciones">Recomendaciones</a>
+</nav>
+
+<main>
+
+  <div class="legend">
+    <span><span class="dot alert-dot"></span> Rojo = necesita atención</span>
+  </div>
+
+  <!-- ===================== CITAS MÉDICAS ===================== -->
+  <section class="category" id="citas">
+    <h2>🩺 Citas médicas</h2>
+    <p class="hint">Especialista, frecuencia y próxima consulta por persona.</p>
+
+    <div class="person-block" data-person="Vera">
+      <div class="person-name">Vera</div>
+
+      <div class="card">
+        <div class="card-title">Reumatólogo</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">3 meses</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Dermatólogo — Dra. Laura Vázquez</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">3 meses</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Rehabilitador oral</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">2 meses</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value">28 de agosto de 2026</span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">7:00 a. m.</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Ginecóloga</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value">22 de julio de 2026</span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">9:10 a. m.</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Optómetra</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">6 meses</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Otorrinolaringólogo</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">9:20 a. m.</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Medicina interna</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+    </div>
+
+    <div class="person-block" data-person="Camila">
+      <div class="person-name">Camila</div>
+
+      <div class="card">
+        <div class="card-title">Pediatra</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Optómetra</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Ortopedista</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Odontología</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+    </div>
+
+    <div class="person-block" data-person="Martina">
+      <div class="person-name">Martina</div>
+
+      <div class="card">
+        <div class="card-title">Pediatra</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Odontología</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">6 meses</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+    </div>
+
+    <div class="person-block" data-person="Isabella">
+      <div class="person-name">Isabella</div>
+
+      <div class="card">
+        <div class="card-title">Ortopedista</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Optómetra</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Odontología</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">6 meses</span></div>
+        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
+        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep">
+
+  <!-- ===================== MEDICAMENTOS ===================== -->
+  <section class="category" id="medicamentos">
+    <h2>💊 Medicamentos</h2>
+    <p class="hint">Reclamo en farmacia y próxima entrega por persona.</p>
+
+    <div class="person-block" data-person="Vera">
+      <div class="person-name">Vera</div>
+
+      <div class="card">
+        <div class="card-title">Prednisolona</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
+        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
+        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">No</span></span></div>
+        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">6 de agosto de 2026</span></div>
+        <div class="note-alert">⚠ Sin existencias en el punto de reclamo</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Calcibón</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
+        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
+        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">No</span></span></div>
+        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">6 de agosto de 2026</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Ácido fólico</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
+        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
+        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">Sin confirmar</span></span></div>
+        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">Sin definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Leflunomida</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
+        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Medicarte</span></div>
+        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill ok">Sí</span></span></div>
+        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">No aplica</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Metotrexato</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
+        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
+        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">Sin confirmar</span></span></div>
+        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">Sin definir</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Fucidin</div>
+        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
+        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Helpharma</span></div>
+        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill ok">Sí</span></span></div>
+        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">No aplica</span></div>
+      </div>
+    </div>
+
+    <div class="person-block" data-person="Camila">
+      <div class="person-name">Camila</div>
+      <div class="empty-state">Sin medicamentos registrados actualmente.</div>
+    </div>
+
+    <div class="person-block" data-person="Martina">
+      <div class="person-name">Martina</div>
+      <div class="empty-state">Sin medicamentos registrados actualmente.</div>
+    </div>
+
+    <div class="person-block" data-person="Isabella">
+      <div class="person-name">Isabella</div>
+      <div class="empty-state">Sin medicamentos registrados actualmente.</div>
+    </div>
+  </section>
+
+  <hr class="sep">
+
+  <!-- ===================== RECOMENDACIONES ===================== -->
+  <section class="category" id="recomendaciones">
+    <h2>📋 Recomendaciones</h2>
+    <p class="hint">Indicaciones adicionales de cada especialista y su estado.</p>
+
+    <div class="person-block" data-person="Vera">
+      <div class="person-name">Vera</div>
+
+      <div class="card">
+        <div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">Dermatóloga</span></div>
+        <div class="field"><span class="field-label">Recomendación</span><span class="field-value">Compra de crema Cerave antiarrugas. Aplicar todas las noches en la piel de los glúteos.</span></div>
+        <div class="field"><span class="field-label">Acción</span><span class="field-value">Comprar la crema una vez finalice el tratamiento actual.</span></div>
+        <div class="field"><span class="field-label">Estado</span><span class="field-value"><span class="pill alert">Sin iniciar</span></span></div>
+      </div>
+
+      <div class="card">
+        <div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">Reumatólogo</span></div>
+        <div class="field"><span class="field-label">Recomendación</span><span class="field-value">Registrar las molestias por posible infección urinaria.</span></div>
+        <div class="field"><span class="field-label">Acción</span><span class="field-value">Llevar registro.</span></div>
+        <div class="field"><span class="field-label">Estado</span><span class="field-value"><span class="pill alert">Sin iniciar</span></span></div>
+      </div>
+
+      <div class="card">
+        <div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">Reumatólogo</span></div>
+        <div class="field"><span class="field-label">Recomendación</span><span class="field-value">Iniciar alimentación desinflamatoria — dieta mediterránea.</span></div>
+        <div class="field"><span class="field-label">Acción</span><span class="field-value">Investigar y hacer ajustes al menú.</span></div>
+        <div class="field"><span class="field-label">Estado</span><span class="field-value"><span class="pill alert">Sin iniciar</span></span></div>
+      </div>
+    </div>
+
+    <div class="person-block" data-person="Camila">
+      <div class="person-name">Camila</div>
+      <div class="empty-state">Sin recomendaciones registradas actualmente.</div>
+    </div>
+
+    <div class="person-block" data-person="Martina">
+      <div class="person-name">Martina</div>
+      <div class="empty-state">Sin recomendaciones registradas actualmente.</div>
+    </div>
+
+    <div class="person-block" data-person="Isabella">
+      <div class="person-name">Isabella</div>
+      <div class="empty-state">Sin recomendaciones registradas actualmente.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Página informativa generada a partir de "Estudio del problema.xlsx" (hoja Salud). No editable desde aquí.
+</footer>
+
+</body>
+</html>
