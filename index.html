@@ -36,7 +36,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 17px;
     line-height: 1.5;
-    padding-bottom: 40px;
+    padding-bottom: 48px;
   }
 
   header.top {
@@ -66,6 +66,44 @@
     margin-right: auto;
   }
 
+  /* ---------- Resumen con contadores ---------- */
+  .summary {
+    max-width: 640px;
+    margin: 16px auto 0;
+    padding: 0 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .summary .counter {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--muted);
+  }
+
+  .summary .counter.has-pending { border-top-color: var(--alert-text); }
+  .summary .counter.none-pending { border-top-color: var(--ok-text); }
+
+  .summary .counter .num {
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .summary .counter.has-pending .num { color: var(--alert-text); }
+  .summary .counter.none-pending .num { color: var(--ok-text); }
+
+  .summary .counter .lbl {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.25;
+  }
+
   nav.jump {
     position: sticky;
     top: 0;
@@ -73,6 +111,7 @@
     display: flex;
     gap: 8px;
     padding: 10px 12px;
+    margin-top: 16px;
     background: #ffffffee;
     backdrop-filter: blur(6px);
     border-bottom: 1px solid #e5e7eb;
@@ -98,6 +137,35 @@
     padding: 4px 14px 0;
   }
 
+  /* ---------- Estados de carga y error ---------- */
+  .state-msg {
+    max-width: 640px;
+    margin: 20px auto;
+    padding: 16px 18px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+  .state-msg.loading { color: var(--muted); }
+  .state-msg.error {
+    background: var(--alert-bg);
+    border: 1px solid var(--alert-border);
+    color: var(--alert-text);
+    font-weight: 600;
+  }
+  .state-msg .retry {
+    display: inline-block;
+    margin-top: 10px;
+    background: var(--alert-text);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
   section.category {
     margin-top: 28px;
     scroll-margin-top: 60px;
@@ -117,18 +185,12 @@
     font-size: 0.85rem;
   }
 
-  .person-block {
-    margin-bottom: 22px;
-  }
+  .person-block { margin-bottom: 22px; }
 
   .person-name {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
     font-weight: 700;
     font-size: 1.05rem;
     margin: 0 0 10px;
-    padding-left: 2px;
     border-left: 5px solid var(--accent);
     padding-left: 8px;
   }
@@ -145,6 +207,16 @@
     margin-bottom: 10px;
     border-left: 4px solid var(--accent);
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+  }
+
+  /* Transición al marcar como completado */
+  .card.just-done {
+    animation: flashDone 1.2s ease;
+  }
+  @keyframes flashDone {
+    0%   { background-color: #dcfce7; }
+    100% { background-color: var(--card-bg); }
   }
 
   .card-title {
@@ -158,10 +230,7 @@
     padding: 6px 0;
     border-top: 1px solid #f1f3f5;
   }
-
-  .field:first-of-type {
-    border-top: none;
-  }
+  .field:first-of-type { border-top: none; }
 
   .field-label {
     display: block;
@@ -186,17 +255,12 @@
     padding: 3px 10px;
     border-radius: 999px;
   }
-
   .pill.alert {
     background: var(--alert-bg);
     color: var(--alert-text);
     border: 1px solid var(--alert-border);
   }
-
-  .pill.ok {
-    background: var(--ok-bg);
-    color: var(--ok-text);
-  }
+  .pill.ok { background: var(--ok-bg); color: var(--ok-text); }
 
   .note-alert {
     margin-top: 10px;
@@ -207,6 +271,43 @@
     padding: 8px 10px;
     font-size: 0.88rem;
     font-weight: 600;
+  }
+
+  /* ---------- Control editable (marcar) ---------- */
+  .action {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .action .action-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .toggle-btn {
+    flex: 0 0 auto;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    min-width: 116px;
+    transition: opacity 0.2s ease;
+  }
+  .toggle-btn:disabled { opacity: 0.5; cursor: default; }
+  .toggle-btn.pending {
+    background: var(--alert-text);
+    color: #fff;
+  }
+  .toggle-btn.done {
+    background: var(--ok-bg);
+    color: var(--ok-text);
+    border: 1px solid #bbf7d0;
   }
 
   .empty-state {
@@ -220,22 +321,11 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin: 10px 0 24px;
+    margin: 16px 0 4px;
     font-size: 0.82rem;
   }
-
-  .legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .legend .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-  }
-
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .dot { width: 12px; height: 12px; border-radius: 50%; }
   .legend .dot.alert-dot { background: var(--alert-text); }
 
   footer {
@@ -252,15 +342,93 @@
     border-top: 1px solid #e5e7eb;
     margin: 26px 0 0;
   }
+
+  /* ---------- Modal del PIN ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px 20px;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+  }
+  .modal h3 { margin: 0 0 6px; font-size: 1.15rem; }
+  .modal p { margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); }
+  .modal input {
+    width: 100%;
+    font-size: 1.4rem;
+    text-align: center;
+    letter-spacing: 0.3em;
+    padding: 10px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+  .modal .modal-error {
+    color: var(--alert-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-height: 1.1em;
+    margin-bottom: 10px;
+  }
+  .modal .modal-actions { display: flex; gap: 10px; }
+  .modal button {
+    flex: 1;
+    border: none;
+    border-radius: 999px;
+    padding: 11px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .modal .btn-cancel { background: #eef2f6; color: var(--text); }
+  .modal .btn-ok { background: var(--vera); color: #fff; }
+
+  /* Toast de error al guardar */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(120%);
+    background: var(--alert-text);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+    z-index: 200;
+    max-width: 90%;
+    text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
 <header class="top">
   <h1>Resumen de salud familiar</h1>
-  <div class="updated">Actualizado el 10 de julio de 2026</div>
-  <div class="disclaimer">Esta página es una foto del momento en que se generó, no un panel en vivo. Para el estado más reciente, consulta con Vera.</div>
+  <div class="updated" id="updated">Cargando…</div>
+  <div class="disclaimer">Los datos se leen en vivo desde la base. Para marcar un pendiente se pide el PIN de la familia. Ver la página no requiere PIN.</div>
 </header>
+
+<div class="summary" id="summary" style="display:none">
+  <div class="counter" id="c-citas"><div class="num">–</div><div class="lbl">Citas sin agendar</div></div>
+  <div class="counter" id="c-meds"><div class="num">–</div><div class="lbl">Medicamentos por reclamar</div></div>
+  <div class="counter" id="c-recs"><div class="num">–</div><div class="lbl">Recomendaciones sin iniciar</div></div>
+</div>
 
 <nav class="jump">
   <a href="#citas">Citas médicas</a>
@@ -268,275 +436,362 @@
   <a href="#recomendaciones">Recomendaciones</a>
 </nav>
 
-<main>
+<div id="state" class="state-msg loading">Cargando datos…</div>
 
+<main id="content" style="display:none">
   <div class="legend">
     <span><span class="dot alert-dot"></span> Rojo = necesita atención</span>
   </div>
 
-  <!-- ===================== CITAS MÉDICAS ===================== -->
   <section class="category" id="citas">
     <h2>🩺 Citas médicas</h2>
-    <p class="hint">Especialista, frecuencia y próxima consulta por persona.</p>
-
-    <div class="person-block" data-person="Vera">
-      <div class="person-name">Vera</div>
-
-      <div class="card">
-        <div class="card-title">Reumatólogo</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">3 meses</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Dermatólogo — Dra. Laura Vázquez</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">3 meses</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Rehabilitador oral</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">2 meses</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value">28 de agosto de 2026</span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">7:00 a. m.</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Ginecóloga</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value">22 de julio de 2026</span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">9:10 a. m.</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Optómetra</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">6 meses</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Otorrinolaringólogo</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">9:20 a. m.</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Medicina interna</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-    </div>
-
-    <div class="person-block" data-person="Camila">
-      <div class="person-name">Camila</div>
-
-      <div class="card">
-        <div class="card-title">Pediatra</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Optómetra</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Ortopedista</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Odontología</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-    </div>
-
-    <div class="person-block" data-person="Martina">
-      <div class="person-name">Martina</div>
-
-      <div class="card">
-        <div class="card-title">Pediatra</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Odontología</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">6 meses</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-    </div>
-
-    <div class="person-block" data-person="Isabella">
-      <div class="person-name">Isabella</div>
-
-      <div class="card">
-        <div class="card-title">Ortopedista</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Optómetra</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Anual</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Odontología</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">6 meses</span></div>
-        <div class="field"><span class="field-label">Próxima consulta</span><span class="field-value"><span class="pill alert">Sin agendar</span></span></div>
-        <div class="field"><span class="field-label">Hora</span><span class="field-value">Por definir</span></div>
-      </div>
-    </div>
+    <p class="hint">Especialista, frecuencia y próxima consulta. Puedes marcar si ya se hizo la llamada para agendar.</p>
+    <div id="citas-body"></div>
   </section>
 
   <hr class="sep">
 
-  <!-- ===================== MEDICAMENTOS ===================== -->
   <section class="category" id="medicamentos">
     <h2>💊 Medicamentos</h2>
-    <p class="hint">Reclamo en farmacia y próxima entrega por persona.</p>
-
-    <div class="person-block" data-person="Vera">
-      <div class="person-name">Vera</div>
-
-      <div class="card">
-        <div class="card-title">Prednisolona</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
-        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
-        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">No</span></span></div>
-        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">6 de agosto de 2026</span></div>
-        <div class="note-alert">⚠ Sin existencias en el punto de reclamo</div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Calcibón</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
-        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
-        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">No</span></span></div>
-        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">6 de agosto de 2026</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Ácido fólico</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
-        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
-        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">Sin confirmar</span></span></div>
-        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">Sin definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Leflunomida</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
-        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Medicarte</span></div>
-        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill ok">Sí</span></span></div>
-        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">No aplica</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Metotrexato</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Mensual</span></div>
-        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Cruz Verde</span></div>
-        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill alert">Sin confirmar</span></span></div>
-        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">Sin definir</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Fucidin</div>
-        <div class="field"><span class="field-label">Frecuencia</span><span class="field-value">Ocasional</span></div>
-        <div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">Helpharma</span></div>
-        <div class="field"><span class="field-label">¿Ya fue reclamado?</span><span class="field-value"><span class="pill ok">Sí</span></span></div>
-        <div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">No aplica</span></div>
-      </div>
-    </div>
-
-    <div class="person-block" data-person="Camila">
-      <div class="person-name">Camila</div>
-      <div class="empty-state">Sin medicamentos registrados actualmente.</div>
-    </div>
-
-    <div class="person-block" data-person="Martina">
-      <div class="person-name">Martina</div>
-      <div class="empty-state">Sin medicamentos registrados actualmente.</div>
-    </div>
-
-    <div class="person-block" data-person="Isabella">
-      <div class="person-name">Isabella</div>
-      <div class="empty-state">Sin medicamentos registrados actualmente.</div>
-    </div>
+    <p class="hint">Reclamo en farmacia y próxima entrega. Puedes marcar si ya se reclamó.</p>
+    <div id="medicamentos-body"></div>
   </section>
 
   <hr class="sep">
 
-  <!-- ===================== RECOMENDACIONES ===================== -->
   <section class="category" id="recomendaciones">
     <h2>📋 Recomendaciones</h2>
     <p class="hint">Indicaciones adicionales de cada especialista y su estado.</p>
-
-    <div class="person-block" data-person="Vera">
-      <div class="person-name">Vera</div>
-
-      <div class="card">
-        <div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">Dermatóloga</span></div>
-        <div class="field"><span class="field-label">Recomendación</span><span class="field-value">Compra de crema Cerave antiarrugas. Aplicar todas las noches en la piel de los glúteos.</span></div>
-        <div class="field"><span class="field-label">Acción</span><span class="field-value">Comprar la crema una vez finalice el tratamiento actual.</span></div>
-        <div class="field"><span class="field-label">Estado</span><span class="field-value"><span class="pill alert">Sin iniciar</span></span></div>
-      </div>
-
-      <div class="card">
-        <div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">Reumatólogo</span></div>
-        <div class="field"><span class="field-label">Recomendación</span><span class="field-value">Registrar las molestias por posible infección urinaria.</span></div>
-        <div class="field"><span class="field-label">Acción</span><span class="field-value">Llevar registro.</span></div>
-        <div class="field"><span class="field-label">Estado</span><span class="field-value"><span class="pill alert">Sin iniciar</span></span></div>
-      </div>
-
-      <div class="card">
-        <div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">Reumatólogo</span></div>
-        <div class="field"><span class="field-label">Recomendación</span><span class="field-value">Iniciar alimentación desinflamatoria — dieta mediterránea.</span></div>
-        <div class="field"><span class="field-label">Acción</span><span class="field-value">Investigar y hacer ajustes al menú.</span></div>
-        <div class="field"><span class="field-label">Estado</span><span class="field-value"><span class="pill alert">Sin iniciar</span></span></div>
-      </div>
-    </div>
-
-    <div class="person-block" data-person="Camila">
-      <div class="person-name">Camila</div>
-      <div class="empty-state">Sin recomendaciones registradas actualmente.</div>
-    </div>
-
-    <div class="person-block" data-person="Martina">
-      <div class="person-name">Martina</div>
-      <div class="empty-state">Sin recomendaciones registradas actualmente.</div>
-    </div>
-
-    <div class="person-block" data-person="Isabella">
-      <div class="person-name">Isabella</div>
-      <div class="empty-state">Sin recomendaciones registradas actualmente.</div>
-    </div>
+    <div id="recomendaciones-body"></div>
   </section>
-
 </main>
 
 <footer>
-  Página informativa generada a partir de "Estudio del problema.xlsx" (hoja Salud). No editable desde aquí.
+  Página informativa conectada a base de datos. Solo se pueden marcar los dos campos de gestión; el resto es de solo lectura.
 </footer>
+
+<!-- Modal del PIN -->
+<div class="modal-overlay" id="pin-modal">
+  <div class="modal">
+    <h3>PIN de la familia</h3>
+    <p>Ingresa el PIN para guardar el cambio.</p>
+    <input type="password" inputmode="numeric" id="pin-input" autocomplete="off" maxlength="12">
+    <div class="modal-error" id="pin-error"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="pin-cancel">Cancelar</button>
+      <button class="btn-ok" id="pin-ok">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ---------------- Configuración Supabase ----------------
+  const SUPABASE_URL = 'https://gfdotzfbvekktypkfcqe.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_uWx3CPMAyrFDA9XoeRTq0g_osA0wrwx'; // clave pública (por diseño)
+  const REST = SUPABASE_URL + '/rest/v1';
+  const HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+
+  const PERSONAS = ['Vera', 'Camila', 'Martina', 'Isabella'];
+
+  // PIN recordado solo en memoria de esta sesión (no se persiste).
+  let pinSesion = null;
+
+  let datos = { citas: [], medicamentos: [], recomendaciones: [] };
+
+  // ---------------- Utilidades de formato ----------------
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  function fmtFecha(iso) {
+    if (!iso) return null;
+    const [y, m, d] = iso.split('-').map(Number);
+    return d + ' de ' + MESES[m - 1] + ' de ' + y;
+  }
+
+  function fmtHora(hms) {
+    if (!hms) return null;
+    let [h, min] = hms.split(':').map(Number);
+    const ampm = h >= 12 ? 'p. m.' : 'a. m.';
+    let h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ':' + String(min).padStart(2, '0') + ' ' + ampm;
+  }
+
+  function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ---------------- Carga de datos ----------------
+  async function cargar() {
+    mostrarEstado('loading', 'Cargando datos…');
+    try {
+      const [citas, medicamentos, recomendaciones] = await Promise.all([
+        fetch(REST + '/citas?select=*&order=id', { headers: HEADERS }).then(chk),
+        fetch(REST + '/medicamentos?select=*&order=id', { headers: HEADERS }).then(chk),
+        fetch(REST + '/recomendaciones?select=*&order=id', { headers: HEADERS }).then(chk)
+      ]);
+      datos = { citas, medicamentos, recomendaciones };
+      render();
+    } catch (e) {
+      mostrarEstado('error', 'No se pudieron cargar los datos. Revisa tu conexión e intenta de nuevo.', true);
+    }
+  }
+
+  async function chk(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }
+
+  function mostrarEstado(tipo, msg, conRetry) {
+    const el = document.getElementById('state');
+    el.className = 'state-msg ' + tipo;
+    el.innerHTML = esc(msg) + (conRetry ? '<br><button class="retry" onclick="cargar()">Reintentar</button>' : '');
+    el.style.display = 'block';
+    document.getElementById('content').style.display = 'none';
+    document.getElementById('summary').style.display = 'none';
+  }
+
+  // ---------------- Render ----------------
+  function render() {
+    document.getElementById('state').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('summary').style.display = 'grid';
+
+    const hoy = new Date();
+    document.getElementById('updated').textContent =
+      'Actualizado el ' + hoy.getDate() + ' de ' + MESES[hoy.getMonth()] + ' de ' + hoy.getFullYear();
+
+    renderCitas();
+    renderMedicamentos();
+    renderRecomendaciones();
+    actualizarContadores();
+  }
+
+  function bloquePersona(persona, tarjetasHtml, vacioMsg) {
+    const cuerpo = tarjetasHtml.trim()
+      ? tarjetasHtml
+      : '<div class="empty-state">' + vacioMsg + '</div>';
+    return '<div class="person-block" data-person="' + persona + '">' +
+             '<div class="person-name">' + persona + '</div>' + cuerpo +
+           '</div>';
+  }
+
+  function renderCitas() {
+    let html = '';
+    for (const p of PERSONAS) {
+      const items = datos.citas.filter(c => c.persona === p);
+      let cards = '';
+      for (const c of items) {
+        const fecha = fmtFecha(c.proxima_consulta);
+        const hora = fmtHora(c.hora);
+        const proxima = fecha
+          ? '<span class="field-value">' + fecha + '</span>'
+          : '<span class="field-value"><span class="pill alert">Sin agendar</span></span>';
+        const llamada = c.llamada_agendamiento;
+        cards +=
+          '<div class="card" data-tabla="citas" data-id="' + c.id + '">' +
+            '<div class="card-title">' + esc(c.especialista) + '</div>' +
+            '<div class="field"><span class="field-label">Frecuencia</span><span class="field-value">' + esc(c.frecuencia || '—') + '</span></div>' +
+            '<div class="field"><span class="field-label">Próxima consulta</span>' + proxima + '</div>' +
+            '<div class="field"><span class="field-label">Hora</span><span class="field-value">' + (hora || 'Por definir') + '</span></div>' +
+            accionHtml('citas', c.id, 'llamada_agendamiento', llamada, 'Llamada de agendamiento', 'Llamada hecha ✓', 'Marcar llamada') +
+          '</div>';
+      }
+      html += bloquePersona(p, cards, 'Sin citas registradas.');
+    }
+    document.getElementById('citas-body').innerHTML = html;
+  }
+
+  function renderMedicamentos() {
+    let html = '';
+    for (const p of PERSONAS) {
+      const items = datos.medicamentos.filter(m => m.persona === p);
+      let cards = '';
+      for (const m of items) {
+        const entrega = fmtFecha(m.proxima_entrega);
+        const reclamado = m.reclamado;
+        cards +=
+          '<div class="card" data-tabla="medicamentos" data-id="' + m.id + '">' +
+            '<div class="card-title">' + esc(m.medicamento) + '</div>' +
+            '<div class="field"><span class="field-label">Frecuencia</span><span class="field-value">' + esc(m.frecuencia || '—') + '</span></div>' +
+            '<div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">' + esc(m.lugar_reclamo || '—') + '</span></div>' +
+            '<div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">' + (entrega || 'Sin definir') + '</span></div>' +
+            (m.sin_existencias ? '<div class="note-alert">⚠ Sin existencias en el punto de reclamo</div>' : '') +
+            accionHtml('medicamentos', m.id, 'reclamado', reclamado, '¿Reclamado?', 'Reclamado ✓', 'Marcar reclamado') +
+          '</div>';
+      }
+      html += bloquePersona(p, cards, 'Sin medicamentos registrados.');
+    }
+    document.getElementById('medicamentos-body').innerHTML = html;
+  }
+
+  function renderRecomendaciones() {
+    let html = '';
+    for (const p of PERSONAS) {
+      const items = datos.recomendaciones.filter(r => r.persona === p);
+      let cards = '';
+      for (const r of items) {
+        const sinIniciar = (r.estado || '').toLowerCase() === 'sin iniciar';
+        const estadoHtml = sinIniciar
+          ? '<span class="pill alert">' + esc(r.estado) + '</span>'
+          : esc(r.estado || '—');
+        cards +=
+          '<div class="card">' +
+            '<div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">' + esc(r.emitido_por || '—') + '</span></div>' +
+            '<div class="field"><span class="field-label">Recomendación</span><span class="field-value">' + esc(r.recomendacion) + '</span></div>' +
+            '<div class="field"><span class="field-label">Acción</span><span class="field-value">' + esc(r.accion || '—') + '</span></div>' +
+            '<div class="field"><span class="field-label">Estado</span><span class="field-value">' + estadoHtml + '</span></div>' +
+          '</div>';
+      }
+      html += bloquePersona(p, cards, 'Sin recomendaciones registradas.');
+    }
+    document.getElementById('recomendaciones-body').innerHTML = html;
+  }
+
+  // Genera el control para marcar un campo booleano.
+  function accionHtml(tabla, id, campo, valor, etiqueta, textoHecho, textoPendiente) {
+    const clase = valor ? 'done' : 'pending';
+    const texto = valor ? textoHecho : textoPendiente;
+    return '<div class="action">' +
+             '<span class="action-label">' + etiqueta + '</span>' +
+             '<button class="toggle-btn ' + clase + '" ' +
+               'data-tabla="' + tabla + '" data-id="' + id + '" data-campo="' + campo + '" ' +
+               'data-valor="' + (valor ? '1' : '0') + '" ' +
+               'onclick="onToggle(this)">' + texto + '</button>' +
+           '</div>';
+  }
+
+  // ---------------- Contadores ----------------
+  function actualizarContadores() {
+    const citasSinAgendar = datos.citas.filter(c => !c.proxima_consulta).length;
+    const medsPorReclamar = datos.medicamentos.filter(m => !m.reclamado).length;
+    const recsSinIniciar = datos.recomendaciones.filter(r => (r.estado || '').toLowerCase() === 'sin iniciar').length;
+    setCounter('c-citas', citasSinAgendar);
+    setCounter('c-meds', medsPorReclamar);
+    setCounter('c-recs', recsSinIniciar);
+  }
+
+  function setCounter(id, n) {
+    const el = document.getElementById(id);
+    el.querySelector('.num').textContent = n;
+    el.classList.toggle('has-pending', n > 0);
+    el.classList.toggle('none-pending', n === 0);
+  }
+
+  // ---------------- Marcar un campo (con PIN) ----------------
+  let toggleActual = null;
+
+  function onToggle(btn) {
+    // Solo permitimos marcar de "pendiente" a "hecho" (acción principal).
+    // Si ya está hecho, también permitimos desmarcar por si fue un error.
+    toggleActual = btn;
+    pedirPin();
+  }
+
+  function pedirPin() {
+    if (pinSesion) { ejecutarToggle(pinSesion); return; }
+    abrirModal();
+  }
+
+  function abrirModal() {
+    document.getElementById('pin-error').textContent = '';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-modal').classList.add('open');
+    setTimeout(() => document.getElementById('pin-input').focus(), 50);
+  }
+  function cerrarModal() {
+    document.getElementById('pin-modal').classList.remove('open');
+  }
+
+  document.getElementById('pin-cancel').onclick = () => { cerrarModal(); toggleActual = null; };
+  document.getElementById('pin-ok').onclick = confirmarPin;
+  document.getElementById('pin-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmarPin();
+  });
+
+  function confirmarPin() {
+    const pin = document.getElementById('pin-input').value.trim();
+    if (!pin) { document.getElementById('pin-error').textContent = 'Escribe el PIN.'; return; }
+    cerrarModal();
+    ejecutarToggle(pin);
+  }
+
+  async function ejecutarToggle(pin) {
+    const btn = toggleActual;
+    if (!btn) return;
+    const tabla = btn.dataset.tabla;
+    const id = Number(btn.dataset.id);
+    const campo = btn.dataset.campo;
+    const valorActual = btn.dataset.valor === '1';
+    const nuevoValor = !valorActual;
+
+    btn.disabled = true;
+    try {
+      const r = await fetch(REST + '/rpc/marcar_campo', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, HEADERS),
+        body: JSON.stringify({ p_tabla: tabla, p_id: id, p_campo: campo, p_valor: nuevoValor, p_pin: pin })
+      });
+
+      if (r.status === 400) {
+        // PIN incorrecto u otro error de validación
+        const err = await r.json().catch(() => ({}));
+        if ((err.message || '').toLowerCase().includes('pin')) {
+          pinSesion = null; // olvidar PIN malo
+          toast('PIN incorrecto. Intenta de nuevo.');
+          btn.disabled = false;
+          toggleActual = btn;
+          abrirModal();
+          return;
+        }
+        throw new Error(err.message || 'Error');
+      }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+
+      // Éxito: recordar PIN para el resto de la sesión y actualizar estado local
+      pinSesion = pin;
+      aplicarCambioLocal(tabla, id, campo, nuevoValor);
+      toggleActual = null;
+    } catch (e) {
+      btn.disabled = false;
+      toast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
+    }
+  }
+
+  // Actualiza el dato en memoria, re-renderiza la tarjeta afectada y los contadores.
+  function aplicarCambioLocal(tabla, id, campo, valor) {
+    const fila = datos[tabla].find(x => x.id === id);
+    if (fila) fila[campo] = valor;
+
+    // Re-render de la categoría afectada
+    if (tabla === 'citas') renderCitas();
+    else if (tabla === 'medicamentos') renderMedicamentos();
+    actualizarContadores();
+
+    // Transición visual en la tarjeta recién marcada (si pasó a hecho)
+    if (valor) {
+      const card = document.querySelector('.card[data-tabla="' + tabla + '"][data-id="' + id + '"]');
+      if (card) {
+        card.classList.add('just-done');
+        setTimeout(() => card.classList.remove('just-done'), 1300);
+      }
+    }
+  }
+
+  // ---------------- Toast ----------------
+  let toastTimer = null;
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ---------------- Inicio ----------------
+  cargar();
+</script>
 
 </body>
 </html>
