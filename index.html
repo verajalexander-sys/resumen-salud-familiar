@@ -464,6 +464,10 @@ function renderCitaCard(c, mode) {
     h += c.fechaLabel
       ? '<div class="row-strong">Asistir el ' + esc(c.fechaLabel) + '</div>'
       : '<div class="row-line muted">Fecha por confirmar</div>';
+    if (c.direccion) {
+      const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(c.direccion);
+      h += '<div class="contact-addr">📍 ' + esc(c.direccion) + ' · <a href="' + attr(maps) + '" target="_blank" rel="noopener">Ver en mapa</a></div>';
+    }
   } else {
     h += c.fechaLabel
       ? '<div class="row-strong">Próxima consulta: ' + esc(c.fechaLabel) + '</div>'
@@ -680,16 +684,4 @@ async function doPersist(pin) {
 let toastTimer = null;
 function toast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-// ─────────────── Inicio ───────────────
-document.getElementById('retry').onclick = load;
-load();
-</script>
-
-</body>
-</html>
+  t.textCo
