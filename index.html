@@ -366,7 +366,11 @@ function modelCitas() {
     ...c,
     fechaLabel: fmtFecha(c.proxima_consulta),
     horaLabel: fmtHora(c.hora) || 'Hora por definir',
-    programada: !!c.fecha_control_confirmada
+    // "Programada" = ya tiene cita: porque la EPS confirmó el control
+    // (fecha_control_confirmada) O porque hay una próxima consulta agendada.
+    // Así el motor de Cowork solo necesita escribir proxima_consulta; el flag
+    // fecha_control_confirmada es opcional (no hay que mantenerlo).
+    programada: !!c.fecha_control_confirmada || !!c.proxima_consulta
   }));
 }
 function modelMedicamentos() {
