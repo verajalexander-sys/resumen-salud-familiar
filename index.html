@@ -3,794 +3,585 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resumen de salud familiar</title>
+<title>Salud familiar</title>
 <style>
-  :root {
-    --vera: #0d9488;
-    --camila: #db2777;
-    --martina: #ea580c;
-    --isabella: #2563eb;
-    --bg: #f4f6f8;
-    --card-bg: #ffffff;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --alert-bg: #fef2f2;
-    --alert-border: #fecaca;
-    --alert-text: #b91c1c;
-    --ok-bg: #f0fdf4;
-    --ok-text: #15803d;
-  }
+/* ══════════════════════════════════════════════════════════════════════════
+   Modernist — tokens y componentes del sistema de diseño (styles.css).
+   Fuente: Design Canvas "Salud Familiar". Se inlinea para servir un solo
+   archivo por GitHub Pages.
+   ══════════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap');
 
-  * { box-sizing: border-box; }
+:root {
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-text: #201e1d;
+  --color-accent: #ec3013;
+  --color-accent-2: #e15b47;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 17px;
-    line-height: 1.5;
-    padding-bottom: 48px;
-  }
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-300: #ffc4b8;
+  --color-accent-400: #ff9783;
+  --color-accent-500: #ff563c;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-800: #7c1405;
+  --color-accent-900: #4d170e;
 
-  header.top {
-    background: linear-gradient(135deg, #0d9488, #0f766e);
-    color: #fff;
-    padding: 20px 18px 16px;
-    text-align: center;
-  }
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 800;
+  --font-body: "Archivo", system-ui, sans-serif;
 
-  header.top h1 {
-    margin: 0 0 6px;
-    font-size: 1.5rem;
-  }
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
 
-  header.top .updated {
-    font-size: 0.95rem;
-    font-weight: 600;
-    opacity: 0.95;
-  }
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
 
-  header.top .disclaimer {
-    margin-top: 8px;
-    font-size: 0.82rem;
-    opacity: 0.85;
-    max-width: 480px;
-    margin-left: auto;
-    margin-right: auto;
-  }
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+}
 
-  /* ---------- Resumen con contadores ---------- */
-  .summary {
-    max-width: 640px;
-    margin: 16px auto 0;
-    padding: 0 14px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px; line-height: 1.55; font-weight: 400;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
+}
+h5 { font-size: 16px; }
+h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+p { margin: 0 0 var(--space-3); }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
 
-  .summary .counter {
-    background: var(--card-bg);
-    border-radius: 14px;
-    padding: 12px 8px;
-    text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border-top: 4px solid var(--muted);
-  }
+details > summary { cursor: pointer; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
 
-  .summary .counter.has-pending { border-top-color: var(--alert-text); }
-  .summary .counter.none-pending { border-top-color: var(--ok-text); }
+/* — rules — */
+.hr { height: 2px; border: 0; margin: var(--space-4) 0; background: var(--color-divider); }
 
-  .summary .counter .num {
-    font-size: 1.7rem;
-    font-weight: 800;
-    line-height: 1.1;
-  }
+/* — buttons — */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 13px; line-height: 1.2; color: var(--color-text);
+  background: transparent; border: 1px solid transparent;
+  padding: calc(var(--space-2) * 0.85) var(--space-3);
+  border-radius: var(--radius-md);
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--color-accent); color: var(--color-bg); }
+.btn-primary:hover { background: var(--color-accent-600); }
+.btn-primary:active { background: var(--color-accent-700); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.btn-block { width: 100%; margin-top: var(--space-2); justify-content: flex-start; text-align: left; }
 
-  .summary .counter.has-pending .num { color: var(--alert-text); }
-  .summary .counter.none-pending .num { color: var(--ok-text); }
+/* — forms — */
+.field > label {
+  display: block; font-size: 12px; margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.input {
+  width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
+  font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
 
-  .summary .counter .lbl {
-    font-size: 0.72rem;
-    color: var(--muted);
-    margin-top: 4px;
-    line-height: 1.25;
-  }
+/* — segmented control — */
+.seg { display: inline-flex; overflow: hidden; border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
+.seg-opt { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; font-size: 13px; cursor: pointer; }
+.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+.seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
+.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 
-  nav.jump {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    gap: 8px;
-    padding: 10px 12px;
-    margin-top: 16px;
-    background: #ffffffee;
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid #e5e7eb;
-    overflow-x: auto;
-  }
+/* — cards — */
+.card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface);
+  transition: background 1.2s ease;
+}
+.card.flash { background: var(--color-accent-100); }
+.card-kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); }
+.card-title { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 17px; line-height: 1.2; }
+.card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
 
-  nav.jump a {
-    flex: 1 0 auto;
-    text-align: center;
-    text-decoration: none;
-    color: var(--text);
-    background: #eef2f6;
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
+/* — tags — */
+.tag {
+  display: inline-flex; align-items: center; font-size: 11px;
+  letter-spacing: 0.02em; padding: 3px 10px; border-radius: calc(var(--radius-md) * 0.75);
+}
+.tag-accent { background: var(--color-accent-100); color: var(--color-accent-800); }
+.tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
+.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
 
-  main {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 4px 14px 0;
-  }
+/* — navigation — */
+.nav { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-bottom: 2px solid var(--color-divider); }
+.nav-brand { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 18px; margin-right: auto; }
 
-  /* ---------- Estados de carga y error ---------- */
-  .state-msg {
-    max-width: 640px;
-    margin: 20px auto;
-    padding: 16px 18px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 0.95rem;
-  }
-  .state-msg.loading { color: var(--muted); }
-  .state-msg.error {
-    background: var(--alert-bg);
-    border: 1px solid var(--alert-border);
-    color: var(--alert-text);
-    font-weight: 600;
-  }
-  .state-msg .retry {
-    display: inline-block;
-    margin-top: 10px;
-    background: var(--alert-text);
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: 8px 18px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
+/* — dialog — */
+.dialog-backdrop { position: fixed; inset: 0; display: none; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent); z-index: 100; }
+.dialog-backdrop.open { display: grid; }
+.dialog { width: min(440px, 100%); display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-lg); }
+.dialog-title { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 20px; }
+.dialog-body { font-size: 14px; opacity: 0.85; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
 
-  section.category {
-    margin-top: 28px;
-    scroll-margin-top: 60px;
-  }
+/* — página — */
+.page { min-height: 100vh; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); padding-bottom: 64px; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+.muted { color: color-mix(in srgb, var(--color-text) 60%, transparent); }
+.intro { font-size: 13px; line-height: 1.5; color: color-mix(in srgb, var(--color-text) 65%, transparent); margin: var(--space-4) 0 0; max-width: 56ch; }
+.hint { font-size: 13px; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin: 0 0 var(--space-4); }
 
-  section.category > h2 {
-    font-size: 1.25rem;
-    margin: 0 0 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+.counters { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 2px; background: var(--color-divider); }
+.counter { background: var(--color-bg); padding: var(--space-4) var(--space-3); border-top: 2px solid var(--color-divider); }
+.counter.on { border-top-color: var(--color-accent); }
+.counter .num { font-family: var(--font-heading); font-weight: 800; font-size: 30px; line-height: 1; color: var(--color-text); }
+.counter.on .num { color: var(--color-accent); }
+.counter .lbl { font-size: 11px; letter-spacing: 0.04em; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin-top: 6px; line-height: 1.3; }
 
-  section.category > p.hint {
-    margin: 0 0 14px;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
+.group { margin-bottom: var(--space-3); }
+.group > summary { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; border-bottom: 2px solid var(--color-divider); }
+.group > summary h5 { margin: 0; }
+.group-items { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-2); }
+.empty { font-style: italic; font-size: 13px; color: color-mix(in srgb, var(--color-text) 55%, transparent); padding: var(--space-2) 0 0; }
 
-  .person-block { margin-bottom: 22px; }
+.row-line { font-size: 14px; }
+.row-strong { font-size: 14px; font-weight: 600; }
+.tags-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
-  .person-name {
-    font-weight: 700;
-    font-size: 1.05rem;
-    margin: 0 0 10px;
-    border-left: 5px solid var(--accent);
-    padding-left: 8px;
-  }
+.footer { margin: var(--space-8) 0 0; font-size: 11px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
 
-  .person-block[data-person="Vera"] { --accent: var(--vera); }
-  .person-block[data-person="Camila"] { --accent: var(--camila); }
-  .person-block[data-person="Martina"] { --accent: var(--martina); }
-  .person-block[data-person="Isabella"] { --accent: var(--isabella); }
-
-  .card {
-    background: var(--card-bg);
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    border-left: 4px solid var(--accent);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    transition: background-color 0.5s ease, border-color 0.5s ease;
-  }
-
-  /* Transición al marcar como completado */
-  .card.just-done {
-    animation: flashDone 1.2s ease;
-  }
-  @keyframes flashDone {
-    0%   { background-color: #dcfce7; }
-    100% { background-color: var(--card-bg); }
-  }
-
-  .card-title {
-    font-weight: 700;
-    font-size: 1.02rem;
-    margin-bottom: 8px;
-    word-break: break-word;
-  }
-
-  .field {
-    padding: 6px 0;
-    border-top: 1px solid #f1f3f5;
-  }
-  .field:first-of-type { border-top: none; }
-
-  .field-label {
-    display: block;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--muted);
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-
-  .field-value {
-    display: block;
-    font-size: 0.98rem;
-    word-break: break-word;
-  }
-
-  .pill {
-    display: inline-block;
-    font-size: 0.85rem;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 999px;
-  }
-  .pill.alert {
-    background: var(--alert-bg);
-    color: var(--alert-text);
-    border: 1px solid var(--alert-border);
-  }
-  .pill.ok { background: var(--ok-bg); color: var(--ok-text); }
-
-  .note-alert {
-    margin-top: 10px;
-    background: var(--alert-bg);
-    border: 1px solid var(--alert-border);
-    color: var(--alert-text);
-    border-radius: 10px;
-    padding: 8px 10px;
-    font-size: 0.88rem;
-    font-weight: 600;
-  }
-
-  /* ---------- Control editable (marcar) ---------- */
-  .action {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px dashed #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .action .action-label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .toggle-btn {
-    flex: 0 0 auto;
-    border: none;
-    border-radius: 999px;
-    padding: 9px 16px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    min-width: 116px;
-    transition: opacity 0.2s ease;
-  }
-  .toggle-btn:disabled { opacity: 0.5; cursor: default; }
-  .toggle-btn.pending {
-    background: var(--alert-text);
-    color: #fff;
-  }
-  .toggle-btn.done {
-    background: var(--ok-bg);
-    color: var(--ok-text);
-    border: 1px solid #bbf7d0;
-  }
-
-  .empty-state {
-    color: var(--muted);
-    font-style: italic;
-    font-size: 0.92rem;
-    padding: 4px 0 0 8px;
-  }
-
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 16px 0 4px;
-    font-size: 0.82rem;
-  }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend .dot { width: 12px; height: 12px; border-radius: 50%; }
-  .legend .dot.alert-dot { background: var(--alert-text); }
-
-  footer {
-    max-width: 640px;
-    margin: 30px auto 0;
-    padding: 0 14px;
-    color: var(--muted);
-    font-size: 0.8rem;
-    text-align: center;
-  }
-
-  hr.sep {
-    border: none;
-    border-top: 1px solid #e5e7eb;
-    margin: 26px 0 0;
-  }
-
-  /* ---------- Modal del PIN ---------- */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: #fff;
-    border-radius: 16px;
-    padding: 22px 20px;
-    width: 100%;
-    max-width: 340px;
-    text-align: center;
-  }
-  .modal h3 { margin: 0 0 6px; font-size: 1.15rem; }
-  .modal p { margin: 0 0 14px; font-size: 0.88rem; color: var(--muted); }
-  .modal input {
-    width: 100%;
-    font-size: 1.4rem;
-    text-align: center;
-    letter-spacing: 0.3em;
-    padding: 10px;
-    border: 2px solid #cbd5e1;
-    border-radius: 10px;
-    margin-bottom: 6px;
-  }
-  .modal .modal-error {
-    color: var(--alert-text);
-    font-size: 0.85rem;
-    font-weight: 600;
-    min-height: 1.1em;
-    margin-bottom: 10px;
-  }
-  .modal .modal-actions { display: flex; gap: 10px; }
-  .modal button {
-    flex: 1;
-    border: none;
-    border-radius: 999px;
-    padding: 11px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .modal .btn-cancel { background: #eef2f6; color: var(--text); }
-  .modal .btn-ok { background: var(--vera); color: #fff; }
-
-  /* Toast de error al guardar */
-  .toast {
-    position: fixed;
-    left: 50%;
-    bottom: 24px;
-    transform: translateX(-50%) translateY(120%);
-    background: var(--alert-text);
-    color: #fff;
-    padding: 12px 20px;
-    border-radius: 999px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transition: transform 0.3s ease;
-    z-index: 200;
-    max-width: 90%;
-    text-align: center;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(140%); background: var(--color-accent); color: var(--color-bg); padding: 14px 22px; font-weight: 600; font-size: 13px; z-index: 200; max-width: 90%; text-align: center; transition: transform 0.3s ease; }
+.toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <h1>Resumen de salud familiar</h1>
-  <div class="updated" id="updated">Cargando…</div>
-  <div class="disclaimer">Los datos se leen en vivo desde la base. Para marcar un pendiente se pide el PIN de la familia. Ver la página no requiere PIN.</div>
-</header>
+<div class="page">
+  <nav class="nav">
+    <span class="nav-brand">Salud familiar</span>
+    <span class="muted" style="font-size:12px" id="updated"></span>
+  </nav>
 
-<div class="summary" id="summary" style="display:none">
-  <div class="counter" id="c-citas"><div class="num">–</div><div class="lbl">Citas sin agendar</div></div>
-  <div class="counter" id="c-meds"><div class="num">–</div><div class="lbl">Medicamentos por reclamar</div></div>
-  <div class="counter" id="c-recs"><div class="num">–</div><div class="lbl">Recomendaciones sin iniciar</div></div>
+  <div class="wrap">
+    <p class="intro">Datos en vivo desde la base de la familia. Consultar no pide PIN — para marcar un medicamento reclamado o una llamada de agendamiento, sí.</p>
+
+    <!-- Estado: cargando -->
+    <div id="loading" class="muted" style="margin:var(--space-8) 0;text-align:center;font-size:14px">Cargando datos…</div>
+
+    <!-- Estado: error -->
+    <div id="error" style="display:none;margin:var(--space-6) 0;padding:var(--space-4);border:2px solid var(--color-divider);text-align:center">
+      <p style="margin:0 0 var(--space-3);font-weight:600" id="error-msg"></p>
+      <button type="button" class="btn btn-primary" id="retry">Reintentar</button>
+    </div>
+
+    <!-- Contenido -->
+    <div id="content" style="display:none">
+      <h6 style="margin:var(--space-6) 0 var(--space-2)">Resumen de pendientes</h6>
+      <div class="counters" id="counters"></div>
+
+      <hr class="hr" style="margin-top:var(--space-6)">
+
+      <div class="seg" style="width:100%;display:flex" id="tabs">
+        <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="tab" value="citas" checked> Citas médicas</label>
+        <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="tab" value="medicamentos"> Medicamentos</label>
+        <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="tab" value="examenes"> Exámenes</label>
+        <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="tab" value="recomendaciones"> Recomendaciones</label>
+      </div>
+
+      <div id="panel" style="margin-top:var(--space-6)"></div>
+    </div>
+
+    <footer class="footer">Solo se pueden marcar los campos de reclamo y llamada de agendamiento; el resto es de solo lectura.</footer>
+  </div>
 </div>
 
-<nav class="jump">
-  <a href="#citas">Citas médicas</a>
-  <a href="#medicamentos">Medicamentos</a>
-  <a href="#recomendaciones">Recomendaciones</a>
-</nav>
-
-<div id="state" class="state-msg loading">Cargando datos…</div>
-
-<main id="content" style="display:none">
-  <div class="legend">
-    <span><span class="dot alert-dot"></span> Rojo = necesita atención</span>
-  </div>
-
-  <section class="category" id="citas">
-    <h2>🩺 Citas médicas</h2>
-    <p class="hint">Especialista, frecuencia y próxima consulta. Puedes marcar si ya se hizo la llamada para agendar.</p>
-    <div id="citas-body"></div>
-  </section>
-
-  <hr class="sep">
-
-  <section class="category" id="medicamentos">
-    <h2>💊 Medicamentos</h2>
-    <p class="hint">Reclamo en farmacia y próxima entrega. Puedes marcar si ya se reclamó.</p>
-    <div id="medicamentos-body"></div>
-  </section>
-
-  <hr class="sep">
-
-  <section class="category" id="recomendaciones">
-    <h2>📋 Recomendaciones</h2>
-    <p class="hint">Indicaciones adicionales de cada especialista y su estado.</p>
-    <div id="recomendaciones-body"></div>
-  </section>
-</main>
-
-<footer>
-  Página informativa conectada a base de datos. Solo se pueden marcar los dos campos de gestión; el resto es de solo lectura.
-</footer>
-
-<!-- Modal del PIN -->
-<div class="modal-overlay" id="pin-modal">
-  <div class="modal">
-    <h3>PIN de la familia</h3>
-    <p>Ingresa el PIN para guardar el cambio.</p>
-    <input type="password" inputmode="numeric" id="pin-input" autocomplete="off" maxlength="12">
-    <div class="modal-error" id="pin-error"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" id="pin-cancel">Cancelar</button>
-      <button class="btn-ok" id="pin-ok">Confirmar</button>
+<!-- Diálogo del PIN -->
+<div class="dialog-backdrop" id="pin-modal">
+  <div class="dialog">
+    <div class="dialog-title">PIN de la familia</div>
+    <div class="dialog-body">Ingresa el PIN compartido para guardar el cambio.</div>
+    <div class="field">
+      <label for="pin-input">PIN</label>
+      <input class="input" type="password" inputmode="numeric" maxlength="12" id="pin-input" autocomplete="off">
+    </div>
+    <div id="pin-error" style="display:none;color:var(--color-accent-700);font-size:13px;font-weight:600"></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" id="pin-cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="pin-ok">Confirmar</button>
     </div>
   </div>
 </div>
 
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-  // ---------------- Configuración Supabase ----------------
-  const SUPABASE_URL = 'https://gfdotzfbvekktypkfcqe.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_uWx3CPMAyrFDA9XoeRTq0g_osA0wrwx'; // clave pública (por diseño)
-  const REST = SUPABASE_URL + '/rest/v1';
-  const HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+// ══════════════════════════════════════════════════════════════════════════
+// Configuración Supabase — la clave publishable es pública por diseño; la
+// protección real es RLS + la función marcar_campo (valida el PIN del lado
+// del servidor). La service_role NUNCA va aquí.
+// ══════════════════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://gfdotzfbvekktypkfcqe.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_uWx3CPMAyrFDA9XoeRTq0g_osA0wrwx';
+const REST = SUPABASE_URL + '/rest/v1';
+const HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY };
 
-  const PERSONAS = ['Vera', 'Camila', 'Martina', 'Isabella'];
+const PERSONAS = ['Vera', 'Camila', 'Martina', 'Isabella'];
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
-  // PIN recordado solo en memoria de esta sesión (no se persiste).
-  let pinSesion = null;
+// ─────────────── Estado ───────────────
+const state = {
+  data: { citas: [], medicamentos: [], recomendaciones: [], examenes: [] },
+  activeTab: 'citas',
+  pinSession: null,     // PIN recordado solo en memoria de esta sesión
+  pendingToggle: null,  // { tabla, id, campo, nuevoValor }
+  savingId: null,       // 'tabla-id' mientras guarda
+  justDoneKey: null     // 'tabla-id' recién marcado (para el flash)
+};
 
-  let datos = { citas: [], medicamentos: [], recomendaciones: [] };
+// ─────────────── Utilidades ───────────────
+function fmtFecha(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  return d + ' de ' + MESES[m - 1] + ' de ' + y;
+}
+function fmtHora(hms) {
+  if (!hms) return null;
+  let [h, min] = hms.split(':').map(Number);
+  const ampm = h >= 12 ? 'p. m.' : 'a. m.';
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  return h12 + ':' + String(min).padStart(2, '0') + ' ' + ampm;
+}
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+async function chk(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
 
-  // ---------------- Utilidades de formato ----------------
-  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
-  function fmtFecha(iso) {
-    if (!iso) return null;
-    const [y, m, d] = iso.split('-').map(Number);
-    return d + ' de ' + MESES[m - 1] + ' de ' + y;
-  }
-
-  function fmtHora(hms) {
-    if (!hms) return null;
-    let [h, min] = hms.split(':').map(Number);
-    const ampm = h >= 12 ? 'p. m.' : 'a. m.';
-    let h12 = h % 12; if (h12 === 0) h12 = 12;
-    return h12 + ':' + String(min).padStart(2, '0') + ' ' + ampm;
-  }
-
-  function esc(s) {
-    if (s === null || s === undefined) return '';
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ---------------- Carga de datos ----------------
-  async function cargar() {
-    mostrarEstado('loading', 'Cargando datos…');
-    try {
-      const [citas, medicamentos, recomendaciones] = await Promise.all([
-        fetch(REST + '/citas?select=*&order=id', { headers: HEADERS }).then(chk),
-        fetch(REST + '/medicamentos?select=*&order=id', { headers: HEADERS }).then(chk),
-        fetch(REST + '/recomendaciones?select=*&order=id', { headers: HEADERS }).then(chk)
-      ]);
-      datos = { citas, medicamentos, recomendaciones };
-      render();
-    } catch (e) {
-      mostrarEstado('error', 'No se pudieron cargar los datos. Revisa tu conexión e intenta de nuevo.', true);
-    }
-  }
-
-  async function chk(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }
-
-  function mostrarEstado(tipo, msg, conRetry) {
-    const el = document.getElementById('state');
-    el.className = 'state-msg ' + tipo;
-    el.innerHTML = esc(msg) + (conRetry ? '<br><button class="retry" onclick="cargar()">Reintentar</button>' : '');
-    el.style.display = 'block';
-    document.getElementById('content').style.display = 'none';
-    document.getElementById('summary').style.display = 'none';
-  }
-
-  // ---------------- Render ----------------
-  function render() {
-    document.getElementById('state').style.display = 'none';
+// ─────────────── Carga de datos ───────────────
+async function load() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('content').style.display = 'none';
+  try {
+    const [citas, medicamentos, recomendaciones, examenes] = await Promise.all([
+      fetch(REST + '/citas?select=*&order=id', { headers: HEADERS }).then(chk),
+      fetch(REST + '/medicamentos?select=*&order=id', { headers: HEADERS }).then(chk),
+      fetch(REST + '/recomendaciones?select=*&order=id', { headers: HEADERS }).then(chk),
+      // examenes puede no existir aún en la base: si falla, se trata como vacío.
+      fetch(REST + '/examenes?select=*&order=id', { headers: HEADERS }).then(chk).catch(() => [])
+    ]);
+    state.data = { citas, medicamentos, recomendaciones, examenes };
+    document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
-    document.getElementById('summary').style.display = 'grid';
-
-    const hoy = new Date();
-    document.getElementById('updated').textContent =
-      'Actualizado el ' + hoy.getDate() + ' de ' + MESES[hoy.getMonth()] + ' de ' + hoy.getFullYear();
-
-    renderCitas();
-    renderMedicamentos();
-    renderRecomendaciones();
-    actualizarContadores();
+    renderAll();
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error-msg').textContent = 'No se pudieron cargar los datos. Revisa tu conexión e intenta de nuevo.';
   }
+}
 
-  function bloquePersona(persona, tarjetasHtml, vacioMsg) {
-    const cuerpo = tarjetasHtml.trim()
-      ? tarjetasHtml
-      : '<div class="empty-state">' + vacioMsg + '</div>';
-    return '<div class="person-block" data-person="' + persona + '">' +
-             '<div class="person-name">' + persona + '</div>' + cuerpo +
-           '</div>';
-  }
-
-  function renderCitas() {
-    let html = '';
-    for (const p of PERSONAS) {
-      const items = datos.citas.filter(c => c.persona === p);
-      let cards = '';
-      for (const c of items) {
-        const fecha = fmtFecha(c.proxima_consulta);
-        const hora = fmtHora(c.hora);
-        const proxima = fecha
-          ? '<span class="field-value">' + fecha + '</span>'
-          : '<span class="field-value"><span class="pill alert">Sin agendar</span></span>';
-        const llamada = c.llamada_agendamiento;
-        cards +=
-          '<div class="card" data-tabla="citas" data-id="' + c.id + '">' +
-            '<div class="card-title">' + esc(c.especialista) + '</div>' +
-            '<div class="field"><span class="field-label">Frecuencia</span><span class="field-value">' + esc(c.frecuencia || '—') + '</span></div>' +
-            '<div class="field"><span class="field-label">Próxima consulta</span>' + proxima + '</div>' +
-            '<div class="field"><span class="field-label">Hora</span><span class="field-value">' + (hora || 'Por definir') + '</span></div>' +
-            accionHtml('citas', c.id, 'llamada_agendamiento', llamada, 'Llamada de agendamiento', 'Llamada hecha ✓', 'Marcar llamada') +
-          '</div>';
-      }
-      html += bloquePersona(p, cards, 'Sin citas registradas.');
-    }
-    document.getElementById('citas-body').innerHTML = html;
-  }
-
-  function renderMedicamentos() {
-    let html = '';
-    for (const p of PERSONAS) {
-      const items = datos.medicamentos.filter(m => m.persona === p);
-      let cards = '';
-      for (const m of items) {
-        const entrega = fmtFecha(m.proxima_entrega);
-        const reclamado = m.reclamado;
-        cards +=
-          '<div class="card" data-tabla="medicamentos" data-id="' + m.id + '">' +
-            '<div class="card-title">' + esc(m.medicamento) + '</div>' +
-            '<div class="field"><span class="field-label">Frecuencia</span><span class="field-value">' + esc(m.frecuencia || '—') + '</span></div>' +
-            '<div class="field"><span class="field-label">Lugar de reclamo</span><span class="field-value">' + esc(m.lugar_reclamo || '—') + '</span></div>' +
-            '<div class="field"><span class="field-label">Próxima entrega</span><span class="field-value">' + (entrega || 'Sin definir') + '</span></div>' +
-            (m.sin_existencias ? '<div class="note-alert">⚠ Sin existencias en el punto de reclamo</div>' : '') +
-            accionHtml('medicamentos', m.id, 'reclamado', reclamado, '¿Reclamado?', 'Reclamado ✓', 'Marcar reclamado') +
-          '</div>';
-      }
-      html += bloquePersona(p, cards, 'Sin medicamentos registrados.');
-    }
-    document.getElementById('medicamentos-body').innerHTML = html;
-  }
-
-  function renderRecomendaciones() {
-    let html = '';
-    for (const p of PERSONAS) {
-      const items = datos.recomendaciones.filter(r => r.persona === p);
-      let cards = '';
-      for (const r of items) {
-        const sinIniciar = (r.estado || '').toLowerCase() === 'sin iniciar';
-        const estadoHtml = sinIniciar
-          ? '<span class="pill alert">' + esc(r.estado) + '</span>'
-          : esc(r.estado || '—');
-        cards +=
-          '<div class="card">' +
-            '<div class="field"><span class="field-label">Quién la emitió</span><span class="field-value">' + esc(r.emitido_por || '—') + '</span></div>' +
-            '<div class="field"><span class="field-label">Recomendación</span><span class="field-value">' + esc(r.recomendacion) + '</span></div>' +
-            '<div class="field"><span class="field-label">Acción</span><span class="field-value">' + esc(r.accion || '—') + '</span></div>' +
-            '<div class="field"><span class="field-label">Estado</span><span class="field-value">' + estadoHtml + '</span></div>' +
-          '</div>';
-      }
-      html += bloquePersona(p, cards, 'Sin recomendaciones registradas.');
-    }
-    document.getElementById('recomendaciones-body').innerHTML = html;
-  }
-
-  // Genera el control para marcar un campo booleano.
-  function accionHtml(tabla, id, campo, valor, etiqueta, textoHecho, textoPendiente) {
-    const clase = valor ? 'done' : 'pending';
-    const texto = valor ? textoHecho : textoPendiente;
-    return '<div class="action">' +
-             '<span class="action-label">' + etiqueta + '</span>' +
-             '<button class="toggle-btn ' + clase + '" ' +
-               'data-tabla="' + tabla + '" data-id="' + id + '" data-campo="' + campo + '" ' +
-               'data-valor="' + (valor ? '1' : '0') + '" ' +
-               'onclick="onToggle(this)">' + texto + '</button>' +
-           '</div>';
-  }
-
-  // ---------------- Contadores ----------------
-  function actualizarContadores() {
-    const citasSinAgendar = datos.citas.filter(c => !c.proxima_consulta).length;
-    const medsPorReclamar = datos.medicamentos.filter(m => !m.reclamado).length;
-    const recsSinIniciar = datos.recomendaciones.filter(r => (r.estado || '').toLowerCase() === 'sin iniciar').length;
-    setCounter('c-citas', citasSinAgendar);
-    setCounter('c-meds', medsPorReclamar);
-    setCounter('c-recs', recsSinIniciar);
-  }
-
-  function setCounter(id, n) {
-    const el = document.getElementById(id);
-    el.querySelector('.num').textContent = n;
-    el.classList.toggle('has-pending', n > 0);
-    el.classList.toggle('none-pending', n === 0);
-  }
-
-  // ---------------- Marcar un campo (con PIN) ----------------
-  let toggleActual = null;
-
-  function onToggle(btn) {
-    // Solo permitimos marcar de "pendiente" a "hecho" (acción principal).
-    // Si ya está hecho, también permitimos desmarcar por si fue un error.
-    toggleActual = btn;
-    pedirPin();
-  }
-
-  function pedirPin() {
-    if (pinSesion) { ejecutarToggle(pinSesion); return; }
-    abrirModal();
-  }
-
-  function abrirModal() {
-    document.getElementById('pin-error').textContent = '';
-    document.getElementById('pin-input').value = '';
-    document.getElementById('pin-modal').classList.add('open');
-    setTimeout(() => document.getElementById('pin-input').focus(), 50);
-  }
-  function cerrarModal() {
-    document.getElementById('pin-modal').classList.remove('open');
-  }
-
-  document.getElementById('pin-cancel').onclick = () => { cerrarModal(); toggleActual = null; };
-  document.getElementById('pin-ok').onclick = confirmarPin;
-  document.getElementById('pin-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') confirmarPin();
+// ─────────────── Modelado de items (deriva estados) ───────────────
+function modelCitas() {
+  return state.data.citas.map(c => ({
+    ...c,
+    fechaLabel: fmtFecha(c.proxima_consulta),
+    horaLabel: fmtHora(c.hora) || 'Hora por definir',
+    pending: !c.proxima_consulta
+  }));
+}
+function modelMedicamentos() {
+  return state.data.medicamentos.map(m => ({
+    ...m,
+    fechaLabel: fmtFecha(m.proxima_entrega) || 'Sin definir',
+    pending: !m.reclamado,
+    sinExistencias: !!m.sin_existencias,
+    disponible: !!m.disponible_para_reclamar && !m.reclamado
+  }));
+}
+function modelExamenes() {
+  return state.data.examenes.map(e => {
+    const estado = e.estado || 'Pendiente';
+    return { ...e, fechaLabel: fmtFecha(e.fecha) || 'Sin definir', estadoLabel: estado, pending: estado.toLowerCase() !== 'realizado' };
   });
+}
+function modelRecomendaciones() {
+  return state.data.recomendaciones.map(r => {
+    const pending = (r.estado || '').toLowerCase() === 'sin iniciar';
+    return { ...r, pending, estadoLabel: r.estado || 'Sin estado' };
+  });
+}
 
-  function confirmarPin() {
-    const pin = document.getElementById('pin-input').value.trim();
-    if (!pin) { document.getElementById('pin-error').textContent = 'Escribe el PIN.'; return; }
-    cerrarModal();
-    ejecutarToggle(pin);
-  }
+// Agrupa por persona; abre el grupo si tiene pendientes.
+function buildGroups(items) {
+  return PERSONAS.map(p => {
+    const list = items.filter(x => x.persona === p);
+    const pendingCount = list.filter(x => x.pending).length;
+    return { persona: p, items: list, isEmpty: list.length === 0, pendingCount, open: pendingCount > 0 };
+  });
+}
 
-  async function ejecutarToggle(pin) {
-    const btn = toggleActual;
-    if (!btn) return;
-    const tabla = btn.dataset.tabla;
-    const id = Number(btn.dataset.id);
-    const campo = btn.dataset.campo;
-    const valorActual = btn.dataset.valor === '1';
-    const nuevoValor = !valorActual;
+// ─────────────── Render ───────────────
+function renderAll() {
+  const hoy = new Date();
+  document.getElementById('updated').textContent =
+    'Actualizado el ' + hoy.getDate() + ' de ' + MESES[hoy.getMonth()] + ' de ' + hoy.getFullYear();
+  renderCounters();
+  renderPanel();
+}
 
-    btn.disabled = true;
-    try {
-      const r = await fetch(REST + '/rpc/marcar_campo', {
-        method: 'POST',
-        headers: Object.assign({ 'Content-Type': 'application/json' }, HEADERS),
-        body: JSON.stringify({ p_tabla: tabla, p_id: id, p_campo: campo, p_valor: nuevoValor, p_pin: pin })
-      });
+function renderCounters() {
+  const citasSinAgendar = modelCitas().filter(c => c.pending).length;
+  const medsPorReclamar = modelMedicamentos().filter(m => m.pending).length;
+  const examenesPendientes = modelExamenes().filter(e => e.pending).length;
+  const recsSinIniciar = modelRecomendaciones().filter(r => r.pending).length;
+  const counters = [
+    [citasSinAgendar, 'Citas sin agendar'],
+    [medsPorReclamar, 'Medicamentos por reclamar'],
+    [examenesPendientes, 'Exámenes pendientes'],
+    [recsSinIniciar, 'Recomendaciones sin iniciar']
+  ];
+  document.getElementById('counters').innerHTML = counters.map(([v, l]) =>
+    '<div class="counter' + (v > 0 ? ' on' : '') + '">' +
+      '<div class="num">' + v + '</div>' +
+      '<div class="lbl">' + l + '</div>' +
+    '</div>'
+  ).join('');
+}
 
-      if (r.status === 400) {
-        // PIN incorrecto u otro error de validación
-        const err = await r.json().catch(() => ({}));
-        if ((err.message || '').toLowerCase().includes('pin')) {
-          pinSesion = null; // olvidar PIN malo
-          toast('PIN incorrecto. Intenta de nuevo.');
-          btn.disabled = false;
-          toggleActual = btn;
-          abrirModal();
-          return;
-        }
-        throw new Error(err.message || 'Error');
-      }
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+function flashClass(key) {
+  return state.justDoneKey === key ? ' flash' : '';
+}
 
-      // Éxito: recordar PIN para el resto de la sesión y actualizar estado local
-      pinSesion = pin;
-      aplicarCambioLocal(tabla, id, campo, nuevoValor);
-      toggleActual = null;
-    } catch (e) {
-      btn.disabled = false;
-      toast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
+// Botón para marcar un campo booleano (medicamentos.reclamado / citas.llamada_agendamiento)
+function toggleBtn(tabla, id, campo, valorActual, textoHecho, textoPendiente) {
+  const key = tabla + '-' + id;
+  const done = !!valorActual;
+  const cls = done ? 'btn-secondary' : 'btn-primary';
+  const label = done ? textoHecho : textoPendiente;
+  const disabled = state.savingId === key ? ' disabled' : '';
+  return '<button type="button" class="btn ' + cls + ' btn-block"' + disabled +
+    ' data-tabla="' + tabla + '" data-id="' + id + '" data-campo="' + campo + '" data-valor="' + (done ? '1' : '0') + '"' +
+    ' onclick="onToggle(this)">' + label + '</button>';
+}
+
+// Envoltorio de grupo por persona (details colapsable)
+function groupWrap(g, suffix, innerCards, vacioMsg) {
+  const tag = g.pendingCount > 0
+    ? '<span class="tag tag-accent">' + g.pendingCount + ' ' + suffix + '</span>' : '';
+  const body = g.isEmpty
+    ? '<p class="empty">' + vacioMsg + '</p>'
+    : '<div class="group-items">' + innerCards + '</div>';
+  return '<details class="group"' + (g.open ? ' open' : '') + '>' +
+    '<summary><h5>' + g.persona + '</h5>' + tag + '</summary>' + body + '</details>';
+}
+
+function renderPanel() {
+  const tab = state.activeTab;
+  const panel = document.getElementById('panel');
+  let hint = '', groupsHtml = '';
+
+  if (tab === 'citas') {
+    hint = 'Especialista, frecuencia y próxima consulta. Puedes marcar si ya se hizo la llamada para agendar.';
+    groupsHtml = buildGroups(modelCitas()).map(g => {
+      const cards = g.items.map(c =>
+        '<div class="card' + flashClass('citas-' + c.id) + '">' +
+          '<div class="card-title">' + esc(c.especialista) + '</div>' +
+          '<p class="card-body">' + esc(c.frecuencia || '—') + ' · ' + esc(c.horaLabel) + '</p>' +
+          (c.fechaLabel ? '<div class="row-strong">Próxima consulta: ' + esc(c.fechaLabel) + '</div>' : '') +
+          (c.pending ? '<div><span class="tag tag-accent">Sin agendar</span></div>' : '') +
+          toggleBtn('citas', c.id, 'llamada_agendamiento', c.llamada_agendamiento, 'Llamada hecha ✓', 'Marcar llamada de agendamiento') +
+        '</div>'
+      ).join('');
+      return groupWrap(g, 'sin agendar', cards, 'Sin citas registradas.');
+    }).join('');
+
+  } else if (tab === 'medicamentos') {
+    hint = 'Reclamo en farmacia y próxima entrega. Puedes marcar si ya se reclamó.';
+    groupsHtml = buildGroups(modelMedicamentos()).map(g => {
+      const cards = g.items.map(m =>
+        '<div class="card' + flashClass('medicamentos-' + m.id) + '">' +
+          '<div class="card-title">' + esc(m.medicamento) + '</div>' +
+          '<p class="card-body">' + esc(m.frecuencia || '—') + ' · ' + esc(m.lugar_reclamo || '—') + '</p>' +
+          '<div class="row-line">Próxima entrega: ' + esc(m.fechaLabel) + '</div>' +
+          ((m.sinExistencias || m.disponible) ? '<div class="tags-row">' +
+            (m.sinExistencias ? '<span class="tag tag-accent">Sin existencias</span>' : '') +
+            (m.disponible ? '<span class="tag tag-outline">Disponible para reclamar</span>' : '') +
+          '</div>' : '') +
+          toggleBtn('medicamentos', m.id, 'reclamado', m.reclamado, 'Reclamado ✓', 'Marcar reclamado') +
+        '</div>'
+      ).join('');
+      return groupWrap(g, 'por reclamar', cards, 'Sin medicamentos registrados.');
+    }).join('');
+
+  } else if (tab === 'examenes') {
+    hint = 'Exámenes autorizados. Categoría alimentada automáticamente cuando llega una autorización — de solo lectura.';
+    const modeled = modelExamenes();
+    if (modeled.length === 0) {
+      groupsHtml = '<p class="empty" style="padding:0">Aún no hay exámenes registrados.</p>';
+    } else {
+      groupsHtml = buildGroups(modeled).map(g => {
+        const cards = g.items.map(e =>
+          '<div class="card">' +
+            '<div class="card-title">' + esc(e.examen) + '</div>' +
+            '<p class="card-body">' + esc(e.lugar || '—') + '</p>' +
+            '<div class="row-line">Fecha: ' + esc(e.fechaLabel) + '</div>' +
+            '<div><span class="tag ' + (e.pending ? 'tag-accent' : 'tag-neutral') + '">' + esc(e.estadoLabel) + '</span></div>' +
+          '</div>'
+        ).join('');
+        return groupWrap(g, 'pendientes', cards, 'Sin exámenes registrados.');
+      }).join('');
     }
+
+  } else if (tab === 'recomendaciones') {
+    hint = 'Indicaciones adicionales de cada especialista. De solo lectura.';
+    groupsHtml = buildGroups(modelRecomendaciones()).map(g => {
+      const cards = g.items.map(r =>
+        '<div class="card">' +
+          '<div class="card-kicker">' + esc(r.emitido_por || '—') + '</div>' +
+          '<div class="card-title" style="font-size:15px">' + esc(r.recomendacion) + '</div>' +
+          '<p class="card-body">' + esc(r.accion || '—') + '</p>' +
+          '<div><span class="tag ' + (r.pending ? 'tag-accent' : 'tag-neutral') + '">' + esc(r.estadoLabel) + '</span></div>' +
+        '</div>'
+      ).join('');
+      return groupWrap(g, 'sin iniciar', cards, 'Sin recomendaciones registradas.');
+    }).join('');
   }
 
-  // Actualiza el dato en memoria, re-renderiza la tarjeta afectada y los contadores.
-  function aplicarCambioLocal(tabla, id, campo, valor) {
-    const fila = datos[tabla].find(x => x.id === id);
-    if (fila) fila[campo] = valor;
+  panel.innerHTML = '<p class="hint">' + hint + '</p>' + groupsHtml;
+}
 
-    // Re-render de la categoría afectada
-    if (tabla === 'citas') renderCitas();
-    else if (tabla === 'medicamentos') renderMedicamentos();
-    actualizarContadores();
+// ─────────────── Cambio de pestaña ───────────────
+document.getElementById('tabs').addEventListener('change', (e) => {
+  if (e.target.name === 'tab') { state.activeTab = e.target.value; renderPanel(); }
+});
 
-    // Transición visual en la tarjeta recién marcada (si pasó a hecho)
-    if (valor) {
-      const card = document.querySelector('.card[data-tabla="' + tabla + '"][data-id="' + id + '"]');
-      if (card) {
-        card.classList.add('just-done');
-        setTimeout(() => card.classList.remove('just-done'), 1300);
+// ─────────────── Marcar campo (con PIN) ───────────────
+function onToggle(btn) {
+  const tabla = btn.dataset.tabla;
+  const id = Number(btn.dataset.id);
+  const campo = btn.dataset.campo;
+  const valorActual = btn.dataset.valor === '1';
+  state.pendingToggle = { tabla, id, campo, nuevoValor: !valorActual };
+  if (state.pinSession) doToggle(state.pinSession);
+  else openPin();
+}
+
+// Modal del PIN
+const pinModal = document.getElementById('pin-modal');
+const pinInput = document.getElementById('pin-input');
+const pinError = document.getElementById('pin-error');
+
+function openPin(msg) {
+  pinError.style.display = msg ? 'block' : 'none';
+  pinError.textContent = msg || '';
+  pinInput.value = '';
+  pinModal.classList.add('open');
+  setTimeout(() => pinInput.focus(), 50);
+}
+function closePin() { pinModal.classList.remove('open'); }
+
+document.getElementById('pin-cancel').onclick = () => { closePin(); state.pendingToggle = null; };
+document.getElementById('pin-ok').onclick = confirmPin;
+pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmPin(); });
+
+function confirmPin() {
+  const pin = pinInput.value.trim();
+  if (!pin) { pinError.style.display = 'block'; pinError.textContent = 'Escribe el PIN.'; return; }
+  closePin();
+  doToggle(pin);
+}
+
+async function doToggle(pin) {
+  const t = state.pendingToggle;
+  if (!t) return;
+  state.savingId = t.tabla + '-' + t.id;
+  renderPanel();
+  try {
+    const r = await fetch(REST + '/rpc/marcar_campo', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, HEADERS),
+      body: JSON.stringify({ p_tabla: t.tabla, p_id: t.id, p_campo: t.campo, p_valor: t.nuevoValor, p_pin: pin })
+    });
+    if (r.status === 400) {
+      const err = await r.json().catch(() => ({}));
+      if ((err.message || '').toLowerCase().includes('pin')) {
+        state.pinSession = null; state.savingId = null;
+        renderPanel();
+        openPin('PIN incorrecto. Intenta de nuevo.');
+        return;
       }
+      throw new Error(err.message || 'Error');
     }
-  }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
 
-  // ---------------- Toast ----------------
-  let toastTimer = null;
-  function toast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    // Éxito: recordar PIN de la sesión y actualizar el dato en memoria
+    const fila = state.data[t.tabla].find(x => x.id === t.id);
+    if (fila) fila[t.campo] = t.nuevoValor;
+    const key = t.tabla + '-' + t.id;
+    state.pinSession = pin;
+    state.pendingToggle = null;
+    state.savingId = null;
+    state.justDoneKey = t.nuevoValor ? key : null;
+    renderCounters();
+    renderPanel();
+    if (t.nuevoValor) {
+      setTimeout(() => { if (state.justDoneKey === key) { state.justDoneKey = null; renderPanel(); } }, 1300);
+    }
+  } catch (e) {
+    state.savingId = null;
+    renderPanel();
+    toast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
   }
+}
 
-  // ---------------- Inicio ----------------
-  cargar();
+// ─────────────── Toast ───────────────
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─────────────── Inicio ───────────────
+document.getElementById('retry').onclick = load;
+load();
 </script>
 
 </body>
