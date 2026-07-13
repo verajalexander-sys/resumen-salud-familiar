@@ -73,6 +73,7 @@ h1, h2, h3, h4, h5, h6 {
 h5 { font-size: 16px; }
 h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
 p { margin: 0 0 var(--space-3); }
+a { color: var(--color-accent); }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 ::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
@@ -124,6 +125,7 @@ details > summary::-webkit-details-marker { display: none; }
 .seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
 .seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
 .seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.seg-opt:has(input:disabled) { opacity: 0.5; cursor: default; }
 
 /* — cards — */
 .card {
@@ -164,12 +166,16 @@ details > summary::-webkit-details-marker { display: none; }
 .intro { font-size: 13px; line-height: 1.5; color: color-mix(in srgb, var(--color-text) 65%, transparent); margin: var(--space-4) 0 0; max-width: 56ch; }
 .hint { font-size: 13px; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin: 0 0 var(--space-4); }
 
-.counters { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 2px; background: var(--color-divider); }
+.counters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2px; background: var(--color-divider); }
 .counter { background: var(--color-bg); padding: var(--space-4) var(--space-3); border-top: 2px solid var(--color-divider); }
 .counter.on { border-top-color: var(--color-accent); }
 .counter .num { font-family: var(--font-heading); font-weight: 800; font-size: 30px; line-height: 1; color: var(--color-text); }
 .counter.on .num { color: var(--color-accent); }
 .counter .lbl { font-size: 11px; letter-spacing: 0.04em; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin-top: 6px; line-height: 1.3; }
+
+.subsection { margin-top: var(--space-6); }
+.sub-title { margin: 0 0 2px; }
+.sub-sub { font-size: 12px; color: color-mix(in srgb, var(--color-text) 55%, transparent); margin: 0 0 var(--space-3); }
 
 .group { margin-bottom: var(--space-3); }
 .group > summary { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; border-bottom: 2px solid var(--color-divider); }
@@ -180,6 +186,20 @@ details > summary::-webkit-details-marker { display: none; }
 .row-line { font-size: 14px; }
 .row-strong { font-size: 14px; font-weight: 600; }
 .tags-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+/* — enlaces de contacto (solo lectura) — */
+.contact-links { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.contact-links a {
+  font-size: 12px; text-decoration: none; color: var(--color-text);
+  border: 1px solid var(--color-divider); padding: 5px 10px;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.contact-links a:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.contact-addr { font-size: 12px; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+
+/* — selector de estado de recomendación — */
+.est-seg { width: 100%; display: flex; margin-top: var(--space-1); }
+.est-seg .seg-opt { flex: 1; justify-content: center; font-size: 12px; padding: 6px 4px; }
 
 .footer { margin: var(--space-8) 0 0; font-size: 11px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
 
@@ -196,18 +216,15 @@ details > summary::-webkit-details-marker { display: none; }
   </nav>
 
   <div class="wrap">
-    <p class="intro">Datos en vivo desde la base de la familia. Consultar no pide PIN — para marcar un medicamento reclamado o una llamada de agendamiento, sí.</p>
+    <p class="intro">Datos en vivo desde la base de la familia. Consultar no pide PIN — para marcar un medicamento reclamado, una llamada de agendamiento o el estado de una recomendación, sí.</p>
 
-    <!-- Estado: cargando -->
     <div id="loading" class="muted" style="margin:var(--space-8) 0;text-align:center;font-size:14px">Cargando datos…</div>
 
-    <!-- Estado: error -->
     <div id="error" style="display:none;margin:var(--space-6) 0;padding:var(--space-4);border:2px solid var(--color-divider);text-align:center">
       <p style="margin:0 0 var(--space-3);font-weight:600" id="error-msg"></p>
       <button type="button" class="btn btn-primary" id="retry">Reintentar</button>
     </div>
 
-    <!-- Contenido -->
     <div id="content" style="display:none">
       <h6 style="margin:var(--space-6) 0 var(--space-2)">Resumen de pendientes</h6>
       <div class="counters" id="counters"></div>
@@ -224,11 +241,10 @@ details > summary::-webkit-details-marker { display: none; }
       <div id="panel" style="margin-top:var(--space-6)"></div>
     </div>
 
-    <footer class="footer">Solo se pueden marcar los campos de reclamo y llamada de agendamiento; el resto es de solo lectura.</footer>
+    <footer class="footer">Solo se pueden marcar el reclamo, la llamada de agendamiento y el estado de las recomendaciones; el resto es de solo lectura.</footer>
   </div>
 </div>
 
-<!-- Diálogo del PIN -->
 <div class="dialog-backdrop" id="pin-modal">
   <div class="dialog">
     <div class="dialog-title">PIN de la familia</div>
@@ -245,14 +261,13 @@ details > summary::-webkit-details-marker { display: none; }
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════════════════════
 // Configuración Supabase — la clave publishable es pública por diseño; la
-// protección real es RLS + la función marcar_campo (valida el PIN del lado
-// del servidor). La service_role NUNCA va aquí.
+// protección real es RLS + funciones que validan PIN/secreto server-side.
+// La service_role NUNCA va aquí.
 // ══════════════════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://gfdotzfbvekktypkfcqe.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_uWx3CPMAyrFDA9XoeRTq0g_osA0wrwx';
@@ -261,15 +276,15 @@ const HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY 
 
 const PERSONAS = ['Vera', 'Camila', 'Martina', 'Isabella'];
 const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const ESTADOS_REC = ['Sin iniciar', 'En proceso', 'Realizado'];
 
-// ─────────────── Estado ───────────────
 const state = {
   data: { citas: [], medicamentos: [], recomendaciones: [], examenes: [] },
   activeTab: 'citas',
-  pinSession: null,     // PIN recordado solo en memoria de esta sesión
-  pendingToggle: null,  // { tabla, id, campo, nuevoValor }
-  savingId: null,       // 'tabla-id' mientras guarda
-  justDoneKey: null     // 'tabla-id' recién marcado (para el flash)
+  pinSession: null,
+  pendingAction: null,   // { kind:'campo'|'estado', tabla, id, campo?, nuevoValor }
+  savingId: null,
+  justDoneKey: null
 };
 
 // ─────────────── Utilidades ───────────────
@@ -289,7 +304,38 @@ function esc(s) {
   if (s === null || s === undefined) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function attr(s) { return esc(s); }
+function hoyISO() {
+  const n = new Date();
+  return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+}
 async function chk(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+
+// Enlaces de contacto (solo lectura): llamar, WhatsApp, correo, dirección.
+function contactos(o) {
+  const parts = [];
+  if (o.telefono_agendar) {
+    const tel = String(o.telefono_agendar).replace(/[^\d+]/g, '');
+    parts.push('<a href="tel:' + attr(tel) + '">📞 Llamar</a>');
+  }
+  if (o.celular_agendar) {
+    let d = String(o.celular_agendar).replace(/\D/g, '');
+    if (d) {
+      if (!d.startsWith('57')) d = '57' + d;
+      parts.push('<a href="https://wa.me/' + attr(d) + '" target="_blank" rel="noopener">💬 WhatsApp</a>');
+    }
+  }
+  if (o.correo_agendar) {
+    parts.push('<a href="mailto:' + attr(o.correo_agendar) + '">✉️ Correo</a>');
+  }
+  let html = '';
+  if (parts.length) html += '<div class="contact-links">' + parts.join('') + '</div>';
+  if (o.direccion) {
+    const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(o.direccion);
+    html += '<div class="contact-addr">📍 ' + esc(o.direccion) + ' · <a href="' + attr(maps) + '" target="_blank" rel="noopener">Ver en mapa</a></div>';
+  }
+  return html;
+}
 
 // ─────────────── Carga de datos ───────────────
 async function load() {
@@ -301,7 +347,6 @@ async function load() {
       fetch(REST + '/citas?select=*&order=id', { headers: HEADERS }).then(chk),
       fetch(REST + '/medicamentos?select=*&order=id', { headers: HEADERS }).then(chk),
       fetch(REST + '/recomendaciones?select=*&order=id', { headers: HEADERS }).then(chk),
-      // examenes puede no existir aún en la base: si falla, se trata como vacío.
       fetch(REST + '/examenes?select=*&order=id', { headers: HEADERS }).then(chk).catch(() => [])
     ]);
     state.data = { citas, medicamentos, recomendaciones, examenes };
@@ -315,22 +360,26 @@ async function load() {
   }
 }
 
-// ─────────────── Modelado de items (deriva estados) ───────────────
+// ─────────────── Modelado ───────────────
 function modelCitas() {
   return state.data.citas.map(c => ({
     ...c,
     fechaLabel: fmtFecha(c.proxima_consulta),
     horaLabel: fmtHora(c.hora) || 'Hora por definir',
-    pending: !c.proxima_consulta
+    programada: !!c.fecha_control_confirmada
   }));
 }
 function modelMedicamentos() {
+  const hoy = hoyISO();
   return state.data.medicamentos.map(m => ({
     ...m,
     fechaLabel: fmtFecha(m.proxima_entrega) || 'Sin definir',
     pending: !m.reclamado,
     sinExistencias: !!m.sin_existencias,
-    disponible: !!m.disponible_para_reclamar && !m.reclamado
+    disponible: !!m.disponible_para_reclamar && !m.reclamado,
+    // Recambio: recurrente de Cruz Verde cuya próxima entrega ya llegó y aún no está "disponible".
+    recambio: m.lugar_reclamo === 'Cruz Verde' && !!m.proxima_entrega && m.proxima_entrega <= hoy && !m.disponible_para_reclamar,
+    mostrarDireccion: m.lugar_reclamo !== 'Cruz Verde' && !!m.direccion
   }));
 }
 function modelExamenes() {
@@ -341,17 +390,19 @@ function modelExamenes() {
 }
 function modelRecomendaciones() {
   return state.data.recomendaciones.map(r => {
-    const pending = (r.estado || '').toLowerCase() === 'sin iniciar';
-    return { ...r, pending, estadoLabel: r.estado || 'Sin estado' };
+    const estado = r.estado || 'Sin iniciar';
+    return { ...r, estadoActual: estado, sinIniciar: estado.toLowerCase() === 'sin iniciar' };
   });
 }
 
-// Agrupa por persona; abre el grupo si tiene pendientes.
+function personaGroups(list) {
+  return PERSONAS.map(p => ({ persona: p, items: list.filter(x => x.persona === p) })).filter(g => g.items.length);
+}
 function buildGroups(items) {
   return PERSONAS.map(p => {
-    const list = items.filter(x => x.persona === p);
-    const pendingCount = list.filter(x => x.pending).length;
-    return { persona: p, items: list, isEmpty: list.length === 0, pendingCount, open: pendingCount > 0 };
+    const l = items.filter(x => x.persona === p);
+    const pendingCount = l.filter(x => x.pending).length;
+    return { persona: p, items: l, isEmpty: l.length === 0, pendingCount, open: pendingCount > 0 };
   });
 }
 
@@ -365,29 +416,30 @@ function renderAll() {
 }
 
 function renderCounters() {
-  const citasSinAgendar = modelCitas().filter(c => c.pending).length;
-  const medsPorReclamar = modelMedicamentos().filter(m => m.pending).length;
-  const examenesPendientes = modelExamenes().filter(e => e.pending).length;
-  const recsSinIniciar = modelRecomendaciones().filter(r => r.pending).length;
+  const hoy = hoyISO();
+  const citas = modelCitas();
+  const meds = modelMedicamentos();
+  const cPorAgendar = citas.filter(c => !c.programada).length;
+  const cPorAsistir = citas.filter(c => c.programada && c.proxima_consulta && c.proxima_consulta >= hoy).length;
+  const mReclamar = meds.filter(m => m.disponible).length;
+  const mRecambio = meds.filter(m => m.recambio).length;
+  const exPend = modelExamenes().filter(e => e.pending).length;
+  const recSin = modelRecomendaciones().filter(r => r.sinIniciar).length;
   const counters = [
-    [citasSinAgendar, 'Citas sin agendar'],
-    [medsPorReclamar, 'Medicamentos por reclamar'],
-    [examenesPendientes, 'Exámenes pendientes'],
-    [recsSinIniciar, 'Recomendaciones sin iniciar']
+    [cPorAgendar, 'Citas por agendar'],
+    [cPorAsistir, 'Citas por asistir'],
+    [mReclamar, 'Medicamentos por reclamar'],
+    [mRecambio, 'Medicamentos por solicitar recambio'],
+    [exPend, 'Exámenes pendientes'],
+    [recSin, 'Recomendaciones sin iniciar']
   ];
   document.getElementById('counters').innerHTML = counters.map(([v, l]) =>
-    '<div class="counter' + (v > 0 ? ' on' : '') + '">' +
-      '<div class="num">' + v + '</div>' +
-      '<div class="lbl">' + l + '</div>' +
-    '</div>'
+    '<div class="counter' + (v > 0 ? ' on' : '') + '"><div class="num">' + v + '</div><div class="lbl">' + l + '</div></div>'
   ).join('');
 }
 
-function flashClass(key) {
-  return state.justDoneKey === key ? ' flash' : '';
-}
+function flashClass(key) { return state.justDoneKey === key ? ' flash' : ''; }
 
-// Botón para marcar un campo booleano (medicamentos.reclamado / citas.llamada_agendamiento)
 function toggleBtn(tabla, id, campo, valorActual, textoHecho, textoPendiente) {
   const key = tabla + '-' + id;
   const done = !!valorActual;
@@ -399,109 +451,154 @@ function toggleBtn(tabla, id, campo, valorActual, textoHecho, textoPendiente) {
     ' onclick="onToggle(this)">' + label + '</button>';
 }
 
-// Envoltorio de grupo por persona (details colapsable)
+// ---- Citas: dos subsecciones ----
+function renderCitaCard(c, mode) {
+  let h = '<div class="card' + flashClass('citas-' + c.id) + '">' +
+    '<div class="card-title">' + esc(c.especialista) + '</div>' +
+    '<p class="card-body">' + esc(c.frecuencia || '—') + ' · ' + esc(c.horaLabel) + '</p>';
+  if (mode === 'programada') {
+    h += c.fechaLabel
+      ? '<div class="row-strong">Asistir el ' + esc(c.fechaLabel) + '</div>'
+      : '<div class="row-line muted">Fecha por confirmar</div>';
+  } else {
+    h += c.fechaLabel
+      ? '<div class="row-strong">Próxima consulta: ' + esc(c.fechaLabel) + '</div>'
+      : '<div><span class="tag tag-accent">Sin agendar</span></div>';
+    const ct = contactos(c);
+    if (ct) h += ct;
+    h += toggleBtn('citas', c.id, 'llamada_agendamiento', c.llamada_agendamiento, 'Llamada hecha ✓', 'Marcar llamada de agendamiento');
+  }
+  return h + '</div>';
+}
+
+function renderCitaGroups(list, mode) {
+  const groups = personaGroups(list);
+  if (!groups.length) return '';
+  return groups.map(g => {
+    const cards = g.items.map(c => renderCitaCard(c, mode)).join('');
+    const tag = mode === 'agendar' ? '<span class="tag tag-accent">' + g.items.length + ' por agendar</span>' : '';
+    return '<details class="group" open><summary><h5>' + g.persona + '</h5>' + tag + '</summary>' +
+           '<div class="group-items">' + cards + '</div></details>';
+  }).join('');
+}
+
+function subsection(title, sub, body, emptyMsg) {
+  const inner = body || ('<p class="empty" style="padding:0">' + emptyMsg + '</p>');
+  return '<div class="subsection"><h6 class="sub-title">' + title + '</h6><p class="sub-sub">' + sub + '</p>' + inner + '</div>';
+}
+
 function groupWrap(g, suffix, innerCards, vacioMsg) {
-  const tag = g.pendingCount > 0
-    ? '<span class="tag tag-accent">' + g.pendingCount + ' ' + suffix + '</span>' : '';
-  const body = g.isEmpty
-    ? '<p class="empty">' + vacioMsg + '</p>'
-    : '<div class="group-items">' + innerCards + '</div>';
-  return '<details class="group"' + (g.open ? ' open' : '') + '>' +
-    '<summary><h5>' + g.persona + '</h5>' + tag + '</summary>' + body + '</details>';
+  const tag = g.pendingCount > 0 ? '<span class="tag tag-accent">' + g.pendingCount + ' ' + suffix + '</span>' : '';
+  const body = g.isEmpty ? '<p class="empty">' + vacioMsg + '</p>' : '<div class="group-items">' + innerCards + '</div>';
+  return '<details class="group"' + (g.open ? ' open' : '') + '><summary><h5>' + g.persona + '</h5>' + tag + '</summary>' + body + '</details>';
 }
 
 function renderPanel() {
   const tab = state.activeTab;
   const panel = document.getElementById('panel');
-  let hint = '', groupsHtml = '';
+  let html = '';
 
   if (tab === 'citas') {
-    hint = 'Especialista, frecuencia y próxima consulta. Puedes marcar si ya se hizo la llamada para agendar.';
-    groupsHtml = buildGroups(modelCitas()).map(g => {
-      const cards = g.items.map(c =>
-        '<div class="card' + flashClass('citas-' + c.id) + '">' +
-          '<div class="card-title">' + esc(c.especialista) + '</div>' +
-          '<p class="card-body">' + esc(c.frecuencia || '—') + ' · ' + esc(c.horaLabel) + '</p>' +
-          (c.fechaLabel ? '<div class="row-strong">Próxima consulta: ' + esc(c.fechaLabel) + '</div>' : '') +
-          (c.pending ? '<div><span class="tag tag-accent">Sin agendar</span></div>' : '') +
-          toggleBtn('citas', c.id, 'llamada_agendamiento', c.llamada_agendamiento, 'Llamada hecha ✓', 'Marcar llamada de agendamiento') +
-        '</div>'
-      ).join('');
-      return groupWrap(g, 'sin agendar', cards, 'Sin citas registradas.');
-    }).join('');
+    const items = modelCitas();
+    const programadas = items.filter(c => c.programada);
+    const porAgendar = items.filter(c => !c.programada);
+    html = '<p class="hint">Lo que ya está agendado se separa de lo que hay que llamar a pedir.</p>' +
+      subsection('Citas programadas', 'Ya tienen cita: solo asistir en la fecha indicada.',
+        renderCitaGroups(programadas, 'programada'), 'No hay citas programadas.') +
+      subsection('Pendientes por agendar', 'Falta conseguir la cita — llama, escribe o acércate.',
+        renderCitaGroups(porAgendar, 'agendar'), 'Nada pendiente por agendar.');
 
   } else if (tab === 'medicamentos') {
-    hint = 'Reclamo en farmacia y próxima entrega. Puedes marcar si ya se reclamó.';
-    groupsHtml = buildGroups(modelMedicamentos()).map(g => {
-      const cards = g.items.map(m =>
-        '<div class="card' + flashClass('medicamentos-' + m.id) + '">' +
+    html = '<p class="hint">Reclamo en farmacia y próxima entrega. Puedes marcar si ya se reclamó.</p>';
+    html += buildGroups(modelMedicamentos()).map(g => {
+      const cards = g.items.map(m => {
+        let c = '<div class="card' + flashClass('medicamentos-' + m.id) + '">' +
           '<div class="card-title">' + esc(m.medicamento) + '</div>' +
-          '<p class="card-body">' + esc(m.frecuencia || '—') + ' · ' + esc(m.lugar_reclamo || '—') + '</p>' +
-          '<div class="row-line">Próxima entrega: ' + esc(m.fechaLabel) + '</div>' +
-          ((m.sinExistencias || m.disponible) ? '<div class="tags-row">' +
+          '<p class="card-body">' + esc(m.frecuencia || '—') + ' · ' + esc(m.lugar_reclamo || '—') + '</p>';
+        if (m.mostrarDireccion) c += '<div class="contact-addr">📍 ' + esc(m.direccion) +
+          ' · <a href="https://www.google.com/maps/search/?api=1&query=' + attr(encodeURIComponent(m.direccion)) + '" target="_blank" rel="noopener">Ver en mapa</a></div>';
+        c += '<div class="row-line">Próxima entrega: ' + esc(m.fechaLabel) + '</div>';
+        if (m.sinExistencias || m.disponible || m.recambio) {
+          c += '<div class="tags-row">' +
             (m.sinExistencias ? '<span class="tag tag-accent">Sin existencias</span>' : '') +
             (m.disponible ? '<span class="tag tag-outline">Disponible para reclamar</span>' : '') +
-          '</div>' : '') +
-          toggleBtn('medicamentos', m.id, 'reclamado', m.reclamado, 'Reclamado ✓', 'Marcar reclamado') +
-        '</div>'
-      ).join('');
+            (m.recambio ? '<span class="tag tag-accent">Solicitar recambio</span>' : '') +
+          '</div>';
+        }
+        c += toggleBtn('medicamentos', m.id, 'reclamado', m.reclamado, 'Reclamado ✓', 'Marcar reclamado');
+        return c + '</div>';
+      }).join('');
       return groupWrap(g, 'por reclamar', cards, 'Sin medicamentos registrados.');
     }).join('');
 
   } else if (tab === 'examenes') {
-    hint = 'Exámenes autorizados. Categoría alimentada automáticamente cuando llega una autorización — de solo lectura.';
+    html = '<p class="hint">Exámenes autorizados. Categoría alimentada automáticamente cuando llega una autorización — de solo lectura.</p>';
     const modeled = modelExamenes();
     if (modeled.length === 0) {
-      groupsHtml = '<p class="empty" style="padding:0">Aún no hay exámenes registrados.</p>';
+      html += '<p class="empty" style="padding:0">Aún no hay exámenes registrados.</p>';
     } else {
-      groupsHtml = buildGroups(modeled).map(g => {
-        const cards = g.items.map(e =>
-          '<div class="card">' +
+      html += buildGroups(modeled.map(e => ({ ...e, pending: e.pending }))).map(g => {
+        const cards = g.items.map(e => {
+          let c = '<div class="card">' +
             '<div class="card-title">' + esc(e.examen) + '</div>' +
             '<p class="card-body">' + esc(e.lugar || '—') + '</p>' +
             '<div class="row-line">Fecha: ' + esc(e.fechaLabel) + '</div>' +
-            '<div><span class="tag ' + (e.pending ? 'tag-accent' : 'tag-neutral') + '">' + esc(e.estadoLabel) + '</span></div>' +
-          '</div>'
-        ).join('');
+            '<div><span class="tag ' + (e.pending ? 'tag-accent' : 'tag-neutral') + '">' + esc(e.estadoLabel) + '</span></div>';
+          const ct = contactos(e);
+          if (ct) c += ct;
+          return c + '</div>';
+        }).join('');
         return groupWrap(g, 'pendientes', cards, 'Sin exámenes registrados.');
       }).join('');
     }
 
   } else if (tab === 'recomendaciones') {
-    hint = 'Indicaciones adicionales de cada especialista. De solo lectura.';
-    groupsHtml = buildGroups(modelRecomendaciones()).map(g => {
-      const cards = g.items.map(r =>
-        '<div class="card">' +
+    html = '<p class="hint">Indicaciones adicionales de cada especialista. Puedes cambiar el estado con el PIN.</p>';
+    html += buildGroups(modelRecomendaciones().map(r => ({ ...r, pending: r.sinIniciar }))).map(g => {
+      const cards = g.items.map(r => {
+        const key = 'recomendaciones-' + r.id;
+        const saving = state.savingId === key ? ' disabled' : '';
+        const opts = ESTADOS_REC.map(est =>
+          '<label class="seg-opt"><input type="radio" name="rec-' + r.id + '" value="' + attr(est) + '"' +
+          ((r.estadoActual || '').toLowerCase() === est.toLowerCase() ? ' checked' : '') + saving +
+          ' onchange="onEstado(' + r.id + ', this.value)"> ' + est + '</label>'
+        ).join('');
+        return '<div class="card' + flashClass(key) + '">' +
           '<div class="card-kicker">' + esc(r.emitido_por || '—') + '</div>' +
           '<div class="card-title" style="font-size:15px">' + esc(r.recomendacion) + '</div>' +
           '<p class="card-body">' + esc(r.accion || '—') + '</p>' +
-          '<div><span class="tag ' + (r.pending ? 'tag-accent' : 'tag-neutral') + '">' + esc(r.estadoLabel) + '</span></div>' +
-        '</div>'
-      ).join('');
+          '<div class="seg est-seg">' + opts + '</div>' +
+        '</div>';
+      }).join('');
       return groupWrap(g, 'sin iniciar', cards, 'Sin recomendaciones registradas.');
     }).join('');
   }
 
-  panel.innerHTML = '<p class="hint">' + hint + '</p>' + groupsHtml;
+  panel.innerHTML = html;
 }
 
-// ─────────────── Cambio de pestaña ───────────────
+// ─────────────── Pestañas ───────────────
 document.getElementById('tabs').addEventListener('change', (e) => {
   if (e.target.name === 'tab') { state.activeTab = e.target.value; renderPanel(); }
 });
 
-// ─────────────── Marcar campo (con PIN) ───────────────
+// ─────────────── Marcar (con PIN) ───────────────
 function onToggle(btn) {
   const tabla = btn.dataset.tabla;
   const id = Number(btn.dataset.id);
   const campo = btn.dataset.campo;
   const valorActual = btn.dataset.valor === '1';
-  state.pendingToggle = { tabla, id, campo, nuevoValor: !valorActual };
-  if (state.pinSession) doToggle(state.pinSession);
-  else openPin();
+  state.pendingAction = { kind: 'campo', tabla, id, campo, nuevoValor: !valorActual };
+  if (state.pinSession) doPersist(state.pinSession); else openPin();
 }
 
-// Modal del PIN
+function onEstado(id, estado) {
+  const r = state.data.recomendaciones.find(x => x.id === id);
+  if (r && (r.estado || 'Sin iniciar') === estado) return; // sin cambio
+  state.pendingAction = { kind: 'estado', tabla: 'recomendaciones', id, nuevoValor: estado };
+  if (state.pinSession) doPersist(state.pinSession); else openPin();
+}
+
 const pinModal = document.getElementById('pin-modal');
 const pinInput = document.getElementById('pin-input');
 const pinError = document.getElementById('pin-error');
@@ -515,7 +612,7 @@ function openPin(msg) {
 }
 function closePin() { pinModal.classList.remove('open'); }
 
-document.getElementById('pin-cancel').onclick = () => { closePin(); state.pendingToggle = null; };
+document.getElementById('pin-cancel').onclick = () => { closePin(); state.pendingAction = null; renderPanel(); };
 document.getElementById('pin-ok').onclick = confirmPin;
 pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmPin(); });
 
@@ -523,19 +620,27 @@ function confirmPin() {
   const pin = pinInput.value.trim();
   if (!pin) { pinError.style.display = 'block'; pinError.textContent = 'Escribe el PIN.'; return; }
   closePin();
-  doToggle(pin);
+  doPersist(pin);
 }
 
-async function doToggle(pin) {
-  const t = state.pendingToggle;
+async function doPersist(pin) {
+  const t = state.pendingAction;
   if (!t) return;
   state.savingId = t.tabla + '-' + t.id;
   renderPanel();
+  let url, body;
+  if (t.kind === 'estado') {
+    url = '/rpc/marcar_estado_recomendacion';
+    body = { p_id: t.id, p_estado: t.nuevoValor, p_pin: pin };
+  } else {
+    url = '/rpc/marcar_campo';
+    body = { p_tabla: t.tabla, p_id: t.id, p_campo: t.campo, p_valor: t.nuevoValor, p_pin: pin };
+  }
   try {
-    const r = await fetch(REST + '/rpc/marcar_campo', {
+    const r = await fetch(REST + url, {
       method: 'POST',
       headers: Object.assign({ 'Content-Type': 'application/json' }, HEADERS),
-      body: JSON.stringify({ p_tabla: t.tabla, p_id: t.id, p_campo: t.campo, p_valor: t.nuevoValor, p_pin: pin })
+      body: JSON.stringify(body)
     });
     if (r.status === 400) {
       const err = await r.json().catch(() => ({}));
@@ -549,19 +654,17 @@ async function doToggle(pin) {
     }
     if (!r.ok) throw new Error('HTTP ' + r.status);
 
-    // Éxito: recordar PIN de la sesión y actualizar el dato en memoria
     const fila = state.data[t.tabla].find(x => x.id === t.id);
-    if (fila) fila[t.campo] = t.nuevoValor;
+    if (fila) { if (t.kind === 'estado') fila.estado = t.nuevoValor; else fila[t.campo] = t.nuevoValor; }
     const key = t.tabla + '-' + t.id;
+    const flash = t.kind === 'estado' ? true : !!t.nuevoValor;
     state.pinSession = pin;
-    state.pendingToggle = null;
+    state.pendingAction = null;
     state.savingId = null;
-    state.justDoneKey = t.nuevoValor ? key : null;
+    state.justDoneKey = flash ? key : null;
     renderCounters();
     renderPanel();
-    if (t.nuevoValor) {
-      setTimeout(() => { if (state.justDoneKey === key) { state.justDoneKey = null; renderPanel(); } }, 1300);
-    }
+    if (flash) setTimeout(() => { if (state.justDoneKey === key) { state.justDoneKey = null; renderPanel(); } }, 1300);
   } catch (e) {
     state.savingId = null;
     renderPanel();
