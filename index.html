@@ -684,4 +684,14 @@ async function doPersist(pin) {
 let toastTimer = null;
 function toast(msg) {
   const t = document.getElementById('toast');
-  t.textCo
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─────────────── Inicio ───────────────
+load();
+</script>
+</body>
+</html>
