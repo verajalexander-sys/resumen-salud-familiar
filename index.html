@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
 <title>Salud familiar</title>
 <style>
 /* ══════════════════════════════════════════════════════════════════════════
@@ -206,7 +207,14 @@ details > summary::-webkit-details-marker { display: none; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(140%); background: var(--color-accent); color: var(--color-bg); padding: 14px 22px; font-weight: 600; font-size: 13px; z-index: 200; max-width: 90%; text-align: center; transition: transform 0.3s ease; }
 .toast.show { transform: translateX(-50%) translateY(0); }
 </style>
-</head>
+<style>
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.select { width: 100%; padding: 10px 12px; border: 2px solid var(--color-divider); background: var(--color-bg); font-size: 14px; font-family: inherit; }
+.dialog-scroll { max-height: 70vh; overflow-y: auto; }
+.act-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.act-row .btn { flex: 1 1 auto; min-width: 130px; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+</style>
 <body>
 
 <div class="page">
@@ -216,7 +224,7 @@ details > summary::-webkit-details-marker { display: none; }
   </nav>
 
   <div class="wrap">
-    <p class="intro">Datos en vivo desde la base de la familia. Consultar no pide PIN — para marcar un medicamento reclamado, una llamada de agendamiento o el estado de una recomendación, sí.</p>
+    <p class="intro">Datos en vivo desde la base de la familia. Consultar no pide PIN — para registrar algo nuevo o marcar que ya lo hiciste, sí.</p>
 
     <div id="loading" class="muted" style="margin:var(--space-8) 0;text-align:center;font-size:14px">Cargando datos…</div>
 
@@ -241,7 +249,7 @@ details > summary::-webkit-details-marker { display: none; }
       <div id="panel" style="margin-top:var(--space-6)"></div>
     </div>
 
-    <footer class="footer">Solo se pueden marcar el reclamo, la llamada de agendamiento y el estado de las recomendaciones; el resto es de solo lectura.</footer>
+    <footer class="footer">Las citas y los exámenes se pueden crear, agendar y marcar desde aquí con el PIN de la familia. Los documentos que llegan en PDF los carga el motor de ingesta.</footer>
   </div>
 </div>
 
@@ -261,97 +269,106 @@ details > summary::-webkit-details-marker { display: none; }
   </div>
 </div>
 
+<div class="dialog-backdrop" id="form-modal">
+  <div class="dialog">
+    <div class="dialog-title" id="form-title"></div>
+    <div class="dialog-body" id="form-sub"></div>
+    <div class="dialog-scroll" id="form-fields"></div>
+    <div id="form-error" style="display:none;color:var(--color-accent-700);font-size:13px;font-weight:600;margin-top:var(--space-2)"></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" id="form-cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="form-ok">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════════════════════
-// Configuración Supabase — la clave publishable es pública por diseño; la
-// protección real es RLS + funciones que validan PIN/secreto server-side.
-// La service_role NUNCA va aquí.
-// ══════════════════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://gfdotzfbvekktypkfcqe.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_uWx3CPMAyrFDA9XoeRTq0g_osA0wrwx';
 const REST = SUPABASE_URL + '/rest/v1';
 const HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY };
 
-const PERSONAS = ['Vera', 'Camila', 'Martina', 'Isabella'];
 const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const ESTADOS_REC = ['Sin iniciar', 'En proceso', 'Realizado'];
+const FRECUENCIAS = [['',''],['Ocasional',''],['Mensual','30'],['2 meses','60'],['3 meses','90'],['6 meses','180'],['Anual','365']];
 
 const state = {
-  data: { citas: [], medicamentos: [], recomendaciones: [], examenes: [] },
+  data: { citas: [], medicamentos: [], examenes: [], recomendaciones: [], personas: [] },
   activeTab: 'citas',
   pinSession: null,
-  pendingAction: null,   // { kind:'campo'|'estado', tabla, id, campo?, nuevoValor }
-  savingId: null,
-  justDoneKey: null
+  savingKey: null,
+  justDoneKey: null,
+  pendingAction: null,
+  formSubmit: null
 };
 
-// ─────────────── Utilidades ───────────────
-function fmtFecha(iso) {
-  if (!iso) return null;
-  const [y, m, d] = iso.split('-').map(Number);
-  return d + ' de ' + MESES[m - 1] + ' de ' + y;
-}
-function fmtHora(hms) {
-  if (!hms) return null;
-  let [h, min] = hms.split(':').map(Number);
-  const ampm = h >= 12 ? 'p. m.' : 'a. m.';
-  let h12 = h % 12; if (h12 === 0) h12 = 12;
-  return h12 + ':' + String(min).padStart(2, '0') + ' ' + ampm;
-}
-function esc(s) {
-  if (s === null || s === undefined) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function attr(s) { return esc(s); }
-function hoyISO() {
-  const n = new Date();
-  return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+function hoyISO() { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0'); }
+function fmtFecha(iso) {
+  if (!iso) return '';
+  const [y, m, d] = String(iso).split('-').map(Number);
+  return d + ' de ' + MESES[m-1] + ' de ' + y;
 }
-async function chk(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+function fmtCorta(iso) {
+  if (!iso) return '';
+  const [y, m, d] = String(iso).split('-').map(Number);
+  return String(d).padStart(2,'0') + '/' + String(m).padStart(2,'0') + '/' + y;
+}
+function fmtHora(h) {
+  if (!h) return '';
+  const [hh, mm] = String(h).split(':').map(Number);
+  const ampm = hh >= 12 ? 'p. m.' : 'a. m.';
+  const h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return h12 + ':' + String(mm).padStart(2,'0') + ' ' + ampm;
+}
+function diasHasta(iso) {
+  if (!iso) return null;
+  const [y,m,d] = String(iso).split('-').map(Number);
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  return Math.round((new Date(y, m-1, d) - hoy) / 86400000);
+}
 
-// Enlaces de contacto (solo lectura): llamar, WhatsApp, correo, dirección.
 function contactos(o) {
   const parts = [];
-  if (o.telefono_agendar) {
-    const tel = String(o.telefono_agendar).replace(/[^\d+]/g, '');
-    parts.push('<a href="tel:' + attr(tel) + '">📞 Llamar</a>');
-  }
-  if (o.celular_agendar) {
-    let d = String(o.celular_agendar).replace(/\D/g, '');
-    if (d) {
-      if (!d.startsWith('57')) d = '57' + d;
-      parts.push('<a href="https://wa.me/' + attr(d) + '" target="_blank" rel="noopener">💬 WhatsApp</a>');
-    }
-  }
-  if (o.correo_agendar) {
-    parts.push('<a href="mailto:' + attr(o.correo_agendar) + '">✉️ Correo</a>');
-  }
-  let html = '';
-  if (parts.length) html += '<div class="contact-links">' + parts.join('') + '</div>';
-  if (o.direccion) {
-    const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(o.direccion);
-    html += '<div class="contact-addr">📍 ' + esc(o.direccion) + ' · <a href="' + attr(maps) + '" target="_blank" rel="noopener">Ver en mapa</a></div>';
-  }
-  return html;
+  if (o.telefono_agendar) parts.push('<a href="tel:' + attr(String(o.telefono_agendar).replace(/[^\d+]/g,'')) + '">' + esc(o.telefono_agendar) + '</a>');
+  if (o.celular_agendar) parts.push('<a href="tel:' + attr(String(o.celular_agendar).replace(/[^\d+]/g,'')) + '">' + esc(o.celular_agendar) + '</a>');
+  if (o.correo_agendar) parts.push('<a href="mailto:' + attr(o.correo_agendar) + '">' + esc(o.correo_agendar) + '</a>');
+  return parts.length ? '<div class="contact-links">' + parts.join(' · ') + '</div>' : '';
+}
+function direccionLinea(dir) {
+  if (!dir) return '';
+  const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(dir);
+  return '<div class="contact-addr">' + esc(dir) + ' · <a href="' + attr(maps) + '" target="_blank" rel="noopener">Ver en mapa</a></div>';
+}
+function tag(texto, tipo) { return '<span class="tag tag-' + (tipo || 'neutral') + '">' + esc(texto) + '</span>'; }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-// ─────────────── Carga de datos ───────────────
+async function chk(r) { if (!r.ok) throw new Error(await r.text()); return r.json(); }
+
 async function load() {
   document.getElementById('loading').style.display = 'block';
   document.getElementById('error').style.display = 'none';
   document.getElementById('content').style.display = 'none';
   try {
-    const [citas, medicamentos, recomendaciones, examenes] = await Promise.all([
-      fetch(REST + '/citas?select=*&order=id', { headers: HEADERS }).then(chk),
-      fetch(REST + '/medicamentos?select=*&order=id', { headers: HEADERS }).then(chk),
+    const [citas, medicamentos, examenes, recomendaciones, personas] = await Promise.all([
+      fetch(REST + '/v_citas_actual?select=*&order=persona,especialidad', { headers: HEADERS }).then(chk),
+      fetch(REST + '/v_medicamentos_actual?select=*&order=medicamento', { headers: HEADERS }).then(chk),
+      fetch(REST + '/v_examenes_actual?select=*&order=persona,examen', { headers: HEADERS }).then(chk),
       fetch(REST + '/recomendaciones?select=*&order=id', { headers: HEADERS }).then(chk),
-      fetch(REST + '/examenes?select=*&order=id', { headers: HEADERS }).then(chk).catch(() => [])
+      fetch(REST + '/personas?select=*&order=orden', { headers: HEADERS }).then(chk)
     ]);
-    state.data = { citas, medicamentos, recomendaciones, examenes };
+    state.data = { citas, medicamentos, examenes, recomendaciones, personas };
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
+    document.getElementById('updated').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
     renderAll();
   } catch (e) {
     document.getElementById('loading').style.display = 'none';
@@ -360,82 +377,17 @@ async function load() {
   }
 }
 
-// ─────────────── Modelado ───────────────
-function modelCitas() {
-  return state.data.citas.map(c => ({
-    ...c,
-    fechaLabel: fmtFecha(c.proxima_consulta),
-    horaLabel: fmtHora(c.hora) || 'Hora por definir',
-    // "Programada" = ya tiene cita: porque la EPS confirmó el control
-    // (fecha_control_confirmada) O porque hay una próxima consulta agendada.
-    // Así el motor de Cowork solo necesita escribir proxima_consulta; el flag
-    // fecha_control_confirmada es opcional (no hay que mantenerlo).
-    programada: !!c.fecha_control_confirmada || !!c.proxima_consulta
-  }));
-}
-function modelMedicamentos() {
-  const hoy = hoyISO();
-  return state.data.medicamentos.map(m => ({
-    ...m,
-    fechaLabel: fmtFecha(m.proxima_entrega) || 'Sin definir',
-    pending: !m.reclamado,
-    sinExistencias: !!m.sin_existencias,
-    disponible: !!m.disponible_para_reclamar && !m.reclamado,
-    // Recambio: recurrente de Cruz Verde cuya próxima entrega ya llegó y aún no está "disponible".
-    recambio: m.lugar_reclamo === 'Cruz Verde' && !!m.proxima_entrega && m.proxima_entrega <= hoy && !m.disponible_para_reclamar,
-    mostrarDireccion: m.lugar_reclamo !== 'Cruz Verde' && !!m.direccion
-  }));
-}
-function modelExamenes() {
-  return state.data.examenes.map(e => {
-    const estado = e.estado || 'Pendiente';
-    return { ...e, fechaLabel: fmtFecha(e.fecha) || 'Sin definir', estadoLabel: estado, pending: estado.toLowerCase() !== 'realizado' };
-  });
-}
-function modelRecomendaciones() {
-  return state.data.recomendaciones.map(r => {
-    const estado = r.estado || 'Sin iniciar';
-    return { ...r, estadoActual: estado, sinIniciar: estado.toLowerCase() === 'sin iniciar' };
-  });
-}
-
-function personaGroups(list) {
-  return PERSONAS.map(p => ({ persona: p, items: list.filter(x => x.persona === p) })).filter(g => g.items.length);
-}
-function buildGroups(items) {
-  return PERSONAS.map(p => {
-    const l = items.filter(x => x.persona === p);
-    const pendingCount = l.filter(x => x.pending).length;
-    return { persona: p, items: l, isEmpty: l.length === 0, pendingCount, open: pendingCount > 0 };
-  });
-}
-
-// ─────────────── Render ───────────────
-function renderAll() {
-  const hoy = new Date();
-  document.getElementById('updated').textContent =
-    'Actualizado el ' + hoy.getDate() + ' de ' + MESES[hoy.getMonth()] + ' de ' + hoy.getFullYear();
-  renderCounters();
-  renderPanel();
-}
+function renderAll() { renderCounters(); renderPanel(); }
 
 function renderCounters() {
-  const hoy = hoyISO();
-  const citas = modelCitas();
-  const meds = modelMedicamentos();
-  const cPorAgendar = citas.filter(c => !c.programada).length;
-  const cPorAsistir = citas.filter(c => c.programada && c.proxima_consulta && c.proxima_consulta >= hoy).length;
-  const mReclamar = meds.filter(m => m.disponible).length;
-  const mRecambio = meds.filter(m => m.recambio).length;
-  const exPend = modelExamenes().filter(e => e.pending).length;
-  const recSin = modelRecomendaciones().filter(r => r.sinIniciar).length;
+  const c = state.data.citas, ex = state.data.examenes, me = state.data.medicamentos;
   const counters = [
-    [cPorAgendar, 'Citas por agendar'],
-    [cPorAsistir, 'Citas por asistir'],
-    [mReclamar, 'Medicamentos por reclamar'],
-    [mRecambio, 'Medicamentos por solicitar recambio'],
-    [exPend, 'Exámenes pendientes'],
-    [recSin, 'Recomendaciones sin iniciar']
+    [c.filter(x => ['agendar_ya','sin_programar'].includes(x.estado_actual)).length, 'Citas por agendar'],
+    [c.filter(x => x.estado_actual === 'agendada').length, 'Citas agendadas'],
+    [c.filter(x => x.estado_actual === 'por_confirmar_asistencia').length + ex.filter(x => x.estado_actual === 'por_confirmar_realizacion').length, 'Por confirmar'],
+    [me.filter(x => x.estado_actual === 'por_reclamar').length, 'Medicamentos por reclamar'],
+    [ex.filter(x => ['agendar_ya','orden_por_vencer','orden_vencida'].includes(x.estado_actual)).length, 'Exámenes por gestionar'],
+    [state.data.recomendaciones.filter(r => (r.estado || 'Sin iniciar') === 'Sin iniciar').length, 'Recomendaciones sin iniciar']
   ];
   document.getElementById('counters').innerHTML = counters.map(([v, l]) =>
     '<div class="counter' + (v > 0 ? ' on' : '') + '"><div class="num">' + v + '</div><div class="lbl">' + l + '</div></div>'
@@ -444,173 +396,212 @@ function renderCounters() {
 
 function flashClass(key) { return state.justDoneKey === key ? ' flash' : ''; }
 
-function toggleBtn(tabla, id, campo, valorActual, textoHecho, textoPendiente) {
-  const key = tabla + '-' + id;
-  const done = !!valorActual;
-  const cls = done ? 'btn-secondary' : 'btn-primary';
-  const label = done ? textoHecho : textoPendiente;
-  const disabled = state.savingId === key ? ' disabled' : '';
-  return '<button type="button" class="btn ' + cls + ' btn-block"' + disabled +
-    ' data-tabla="' + tabla + '" data-id="' + id + '" data-campo="' + campo + '" data-valor="' + (done ? '1' : '0') + '"' +
-    ' onclick="onToggle(this)">' + label + '</button>';
-}
-
-// ---- Citas: dos subsecciones ----
-function renderCitaCard(c, mode) {
-  let h = '<div class="card' + flashClass('citas-' + c.id) + '">' +
-    '<div class="card-title">' + esc(c.especialista) + '</div>' +
-    '<p class="card-body">' + esc(c.frecuencia || '—') + ' · ' + esc(c.horaLabel) + '</p>';
-  if (mode === 'programada') {
-    h += c.fechaLabel
-      ? '<div class="row-strong">Asistir el ' + esc(c.fechaLabel) + '</div>'
-      : '<div class="row-line muted">Fecha por confirmar</div>';
-    if (c.direccion) {
-      const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(c.direccion);
-      h += '<div class="contact-addr">📍 ' + esc(c.direccion) + ' · <a href="' + attr(maps) + '" target="_blank" rel="noopener">Ver en mapa</a></div>';
-    }
-  } else {
-    h += c.fechaLabel
-      ? '<div class="row-strong">Próxima consulta: ' + esc(c.fechaLabel) + '</div>'
-      : '<div><span class="tag tag-accent">Sin agendar</span></div>';
-    const ct = contactos(c);
-    if (ct) h += ct;
-    h += toggleBtn('citas', c.id, 'llamada_agendamiento', c.llamada_agendamiento, 'Llamada hecha ✓', 'Marcar llamada de agendamiento');
-  }
-  return h + '</div>';
-}
-
-function renderCitaGroups(list, mode) {
-  const groups = personaGroups(list);
-  if (!groups.length) return '';
-  return groups.map(g => {
-    const cards = g.items.map(c => renderCitaCard(c, mode)).join('');
-    const tag = mode === 'agendar' ? '<span class="tag tag-accent">' + g.items.length + ' por agendar</span>' : '';
-    return '<details class="group" open><summary><h5>' + g.persona + '</h5>' + tag + '</summary>' +
-           '<div class="group-items">' + cards + '</div></details>';
+function grupoPorPersona(items, render) {
+  const orden = state.data.personas.map(p => p.nombre);
+  const presentes = orden.filter(n => items.some(i => i.persona === n));
+  return presentes.map(nombre => {
+    const l = items.filter(i => i.persona === nombre);
+    return '<div class="group"><div class="sub-title">' + esc(nombre) +
+      '<span class="tag tag-neutral">' + l.length + '</span></div>' +
+      '<div class="group-items">' + l.map(render).join('') + '</div></div>';
   }).join('');
 }
 
-function subsection(title, sub, body, emptyMsg) {
-  const inner = body || ('<p class="empty" style="padding:0">' + emptyMsg + '</p>');
-  return '<div class="subsection"><h6 class="sub-title">' + title + '</h6><p class="sub-sub">' + sub + '</p>' + inner + '</div>';
+function seccion(titulo, cuerpo, vacio, boton) {
+  return '<div class="subsection"><div class="sec-head"><h6 style="margin:0">' + esc(titulo) + '</h6>' +
+    (boton || '') + '</div>' + (cuerpo || '<p class="empty">' + esc(vacio) + '</p>') + '</div>';
 }
 
-function groupWrap(g, suffix, innerCards, vacioMsg) {
-  const tag = g.pendingCount > 0 ? '<span class="tag tag-accent">' + g.pendingCount + ' ' + suffix + '</span>' : '';
-  const body = g.isEmpty ? '<p class="empty">' + vacioMsg + '</p>' : '<div class="group-items">' + innerCards + '</div>';
-  return '<details class="group"' + (g.open ? ' open' : '') + '><summary><h5>' + g.persona + '</h5>' + tag + '</summary>' + body + '</details>';
+const CITA_ESTADOS = {
+  agendada:                 ['Agendada', 'accent'],
+  por_confirmar_asistencia: ['¿Asististe?', 'outline'],
+  agendar_ya:               ['Agendar ya', 'accent'],
+  en_espera:                ['En espera', 'neutral'],
+  sin_programar:            ['Sin programar', 'outline'],
+  sin_pendientes:           ['Sin pendientes', 'neutral']
+};
+const EXAM_ESTADOS = {
+  agendada:                  ['Agendada', 'accent'],
+  por_confirmar_realizacion: ['¿Ya te lo hiciste?', 'outline'],
+  agendar_ya:                ['Agendar ya', 'accent'],
+  orden_por_vencer:          ['Orden por vencer', 'accent'],
+  orden_vencida:             ['Orden vencida', 'accent'],
+  en_espera:                 ['En espera', 'neutral'],
+  sin_pendientes:            ['Sin pendientes', 'neutral']
+};
+const MED_ESTADOS = {
+  por_reclamar:        ['Por reclamar', 'accent'],
+  requiere_renovacion: ['Renovar fórmula', 'accent'],
+  recargas_completas:  ['Recargas completas', 'outline'],
+  en_curso:            ['En curso', 'neutral'],
+  finalizado:          ['Finalizado', 'neutral']
+};
+
+function btn(label, accion, tipo) {
+  const saving = state.savingKey === accion ? ' disabled' : '';
+  return '<button type="button" class="btn btn-' + (tipo || 'secondary') + '"' + saving +
+    ' onclick="accion(\'' + accion + '\')">' + esc(label) + '</button>';
+}
+
+function renderCita(c) {
+  const key = 'cita-' + c.especialista_id;
+  const [txt, tipo] = CITA_ESTADOS[c.estado_actual] || ['', 'neutral'];
+  let h = '<div class="card' + flashClass(key) + '">' +
+    '<div class="card-kicker">' + tag(txt, tipo) + '</div>' +
+    '<div class="card-title">' + esc(c.especialidad) + '</div>';
+  if (c.prestador) h += '<p class="card-body">' + esc(c.prestador) + '</p>';
+
+  if (c.proxima_consulta) {
+    const d = diasHasta(c.proxima_consulta);
+    const cuando = d === 0 ? ' · hoy' : (d === 1 ? ' · mañana' : (d > 1 ? ' · en ' + d + ' días' : ''));
+    h += '<div class="row-strong">' + esc(fmtFecha(c.proxima_consulta)) +
+      (c.hora ? ' a las ' + esc(fmtHora(c.hora)) : '') + esc(cuando) + '</div>';
+  } else if (c.motivo) {
+    h += '<div class="row-strong">' + esc(c.motivo) + '</div>';
+  } else if (c.fecha_objetivo) {
+    h += '<div class="row-line">Toca alrededor del ' + esc(fmtCorta(c.fecha_objetivo)) + '</div>';
+  }
+  if (c.ultima_consulta) h += '<div class="row-line muted">Última consulta: ' + esc(fmtCorta(c.ultima_consulta)) + (c.frecuencia ? ' · ' + esc(c.frecuencia) : '') + '</div>';
+  if (c.llamada_agendamiento && !c.proxima_consulta) h += '<div class="row-line muted">Llamada de agendamiento hecha</div>';
+  h += direccionLinea(c.direccion) + contactos(c);
+
+  h += '<div class="act-row">';
+  if (c.consulta_id && c.proxima_consulta) {
+    h += btn('Ya asistí', 'asistir:' + c.consulta_id, 'primary');
+    h += btn('Cambiar fecha', 'agendarCita:' + c.consulta_id);
+    h += btn('Cancelar', 'cancelarCita:' + c.consulta_id);
+  } else if (c.consulta_id) {
+    h += btn('Agendar', 'agendarCita:' + c.consulta_id, 'primary');
+    h += btn(c.llamada_agendamiento ? 'Ya llamé ✓' : 'Ya llamé', 'llamadaCita:' + c.consulta_id + ':' + (c.llamada_agendamiento ? '0' : '1'));
+  } else {
+    h += btn('Pedir cita', 'nuevaConsulta:' + c.especialista_id, 'primary');
+  }
+  h += btn('Contacto', 'contactoCita:' + c.especialista_id);
+  h += '</div></div>';
+  return h;
+}
+
+function renderExamen(e) {
+  const key = 'ex-' + e.paraclinico_id;
+  const [txt, tipo] = EXAM_ESTADOS[e.estado_actual] || ['', 'neutral'];
+  let h = '<div class="card' + flashClass(key) + '">' +
+    '<div class="card-kicker">' + tag(txt, tipo) + '</div>' +
+    '<div class="card-title">' + esc(e.examen) + '</div>' +
+    '<p class="card-body">' + esc(e.tipo === 'especial' ? 'Especial' : 'Rutina') +
+    (e.periodicidad_dias ? ' · cada ' + Math.round(e.periodicidad_dias / 30) + ' meses' : '') + '</p>';
+
+  if (e.fecha_toma) {
+    h += '<div class="row-strong">' + esc(fmtFecha(e.fecha_toma)) + (e.hora ? ' a las ' + esc(fmtHora(e.hora)) : '') + '</div>';
+  } else if (e.motivo) {
+    h += '<div class="row-strong">' + esc(e.motivo) + '</div>';
+  }
+  if (e.valido_hasta) {
+    const d = diasHasta(e.valido_hasta);
+    h += '<div class="row-line' + (d !== null && d < 30 ? ' row-strong' : ' muted') + '">Orden válida hasta ' + esc(fmtCorta(e.valido_hasta)) +
+      (d !== null && d < 0 ? ' · vencida' : (d !== null && d < 30 ? ' · faltan ' + d + ' días' : '')) + '</div>';
+  }
+  if (e.ultima_toma) h += '<div class="row-line muted">Último: ' + esc(fmtCorta(e.ultima_toma)) + '</div>';
+  if (e.llamada_agendamiento && !e.fecha_toma) h += '<div class="row-line muted">Llamada de agendamiento hecha</div>';
+  h += direccionLinea(e.direccion || e.lugar) + contactos(e);
+
+  h += '<div class="act-row">';
+  if (e.toma_id && e.fecha_toma) {
+    h += btn('Ya me lo hice', 'realizado:' + e.toma_id, 'primary');
+    h += btn('Cambiar fecha', 'agendarToma:' + e.toma_id);
+    h += btn('Cancelar', 'cancelarToma:' + e.toma_id);
+  } else if (e.toma_id) {
+    h += btn('Agendar', 'agendarToma:' + e.toma_id, 'primary');
+    h += btn(e.llamada_agendamiento ? 'Ya llamé ✓' : 'Ya llamé', 'llamadaToma:' + e.toma_id + ':' + (e.llamada_agendamiento ? '0' : '1'));
+    h += btn('Ya me lo hice', 'realizado:' + e.toma_id);
+  } else {
+    h += btn('Nueva orden', 'nuevaToma:' + e.paraclinico_id, 'primary');
+  }
+  h += btn('Contacto', 'contactoExamen:' + e.paraclinico_id);
+  h += '</div></div>';
+  return h;
+}
+
+function renderMedicamento(m) {
+  const key = 'med-' + m.id;
+  const [txt, tipo] = MED_ESTADOS[m.estado_actual] || ['', 'neutral'];
+  let h = '<div class="card' + flashClass(key) + '">' +
+    '<div class="card-kicker">' + tag(txt, tipo) + (m.sin_existencias ? ' ' + tag('Sin existencias', 'outline') : '') + '</div>' +
+    '<div class="card-title">' + esc(m.medicamento) + '</div>' +
+    '<p class="card-body">' + esc(m.frecuencia || m.entrega_directa || '') + ' · ' + esc(m.lugar_reclamo || 'Lugar por definir') + '</p>';
+  if (m.proxima_entrega) h += '<div class="row-strong">Próxima entrega: ' + esc(fmtFecha(m.proxima_entrega)) + '</div>';
+  if (m.total_recargas) h += '<div class="row-line">Recarga ' + (m.recargas_realizadas + 1) + ' de ' + m.total_recargas + '</div>';
+  if (m.ultimo_reclamo) h += '<div class="row-line muted">Último reclamo: ' + esc(fmtCorta(m.ultimo_reclamo)) + '</div>';
+  h += direccionLinea(m.direccion);
+
+  h += '<div class="act-row">';
+  if (m.reclamo_id) h += btn('Ya lo reclamé', 'reclamar:' + m.id, 'primary');
+  if (m.estado_actual === 'recargas_completas' || m.estado_actual === 'requiere_renovacion') {
+    h += btn('Pedir cita para renovar', 'renovarMed:' + m.id, 'primary');
+  }
+  if (m.estado_actual !== 'finalizado') h += btn('Finalizar', 'finalizarMed:' + m.id);
+  h += '</div></div>';
+  return h;
+}
+
+function renderRecomendacion(r) {
+  const opts = ESTADOS_REC.map(e =>
+    '<option value="' + attr(e) + '"' + ((r.estado || 'Sin iniciar') === e ? ' selected' : '') + '>' + esc(e) + '</option>').join('');
+  return '<div class="card' + flashClass('rec-' + r.id) + '">' +
+    '<div class="card-kicker">' + esc(r.emitido_por || '') + '</div>' +
+    '<div class="card-title">' + esc(r.recomendacion) + '</div>' +
+    (r.accion ? '<p class="card-body">' + esc(r.accion) + '</p>' : '') +
+    '<div class="act-row"><select class="select" onchange="accion(\'estadoRec:' + r.id + ':\' + this.value)">' + opts + '</select></div>' +
+    '</div>';
 }
 
 function renderPanel() {
-  const tab = state.activeTab;
   const panel = document.getElementById('panel');
-  let html = '';
+  const tab = state.activeTab;
 
   if (tab === 'citas') {
-    const items = modelCitas();
-    const programadas = items.filter(c => c.programada);
-    const porAgendar = items.filter(c => !c.programada);
-    html = '<p class="hint">Lo que ya está agendado se separa de lo que hay que llamar a pedir.</p>' +
-      subsection('Citas programadas', 'Ya tienen cita: solo asistir en la fecha indicada.',
-        renderCitaGroups(programadas, 'programada'), 'No hay citas programadas.') +
-      subsection('Pendientes por agendar', 'Falta conseguir la cita — llama, escribe o acércate.',
-        renderCitaGroups(porAgendar, 'agendar'), 'Nada pendiente por agendar.');
+    const c = state.data.citas;
+    const agendadas = c.filter(x => ['agendada','por_confirmar_asistencia'].includes(x.estado_actual));
+    const gestionar = c.filter(x => ['agendar_ya','sin_programar'].includes(x.estado_actual));
+    const espera = c.filter(x => ['en_espera','sin_pendientes'].includes(x.estado_actual));
+    panel.innerHTML =
+      seccion('Con fecha', agendadas.length ? grupoPorPersona(agendadas, renderCita) : null, 'Ninguna cita agendada.',
+        '<button type="button" class="btn btn-primary" onclick="accion(\'nuevoEspecialista\')">Nuevo especialista</button>') +
+      seccion('Por agendar', gestionar.length ? grupoPorPersona(gestionar, renderCita) : null, 'Nada pendiente por agendar.') +
+      seccion('En seguimiento', espera.length ? grupoPorPersona(espera, renderCita) : null, 'Sin controles en seguimiento.');
 
   } else if (tab === 'medicamentos') {
-    html = '<p class="hint">Reclamo en farmacia y próxima entrega. Puedes marcar si ya se reclamó.</p>';
-    html += buildGroups(modelMedicamentos()).map(g => {
-      const cards = g.items.map(m => {
-        let c = '<div class="card' + flashClass('medicamentos-' + m.id) + '">' +
-          '<div class="card-title">' + esc(m.medicamento) + '</div>' +
-          '<p class="card-body">' + esc(m.frecuencia || '—') + ' · ' + esc(m.lugar_reclamo || '—') + '</p>';
-        if (m.mostrarDireccion) c += '<div class="contact-addr">📍 ' + esc(m.direccion) +
-          ' · <a href="https://www.google.com/maps/search/?api=1&query=' + attr(encodeURIComponent(m.direccion)) + '" target="_blank" rel="noopener">Ver en mapa</a></div>';
-        c += '<div class="row-line">Próxima entrega: ' + esc(m.fechaLabel) + '</div>';
-        if (m.sinExistencias || m.disponible || m.recambio) {
-          c += '<div class="tags-row">' +
-            (m.sinExistencias ? '<span class="tag tag-accent">Sin existencias</span>' : '') +
-            (m.disponible ? '<span class="tag tag-outline">Disponible para reclamar</span>' : '') +
-            (m.recambio ? '<span class="tag tag-accent">Solicitar recambio</span>' : '') +
-          '</div>';
-        }
-        c += toggleBtn('medicamentos', m.id, 'reclamado', m.reclamado, 'Reclamado ✓', 'Marcar reclamado');
-        return c + '</div>';
-      }).join('');
-      return groupWrap(g, 'por reclamar', cards, 'Sin medicamentos registrados.');
-    }).join('');
+    const m = state.data.medicamentos;
+    const activos = m.filter(x => x.estado_actual !== 'finalizado');
+    const fin = m.filter(x => x.estado_actual === 'finalizado');
+    panel.innerHTML =
+      seccion('En tratamiento', activos.length ? grupoPorPersona(activos, renderMedicamento) : null, 'Sin tratamientos activos.') +
+      (fin.length ? seccion('Finalizados', grupoPorPersona(fin, renderMedicamento), '') : '');
 
   } else if (tab === 'examenes') {
-    html = '<p class="hint">Exámenes autorizados. Categoría alimentada automáticamente cuando llega una autorización — de solo lectura.</p>';
-    const modeled = modelExamenes();
-    if (modeled.length === 0) {
-      html += '<p class="empty" style="padding:0">Aún no hay exámenes registrados.</p>';
-    } else {
-      html += buildGroups(modeled.map(e => ({ ...e, pending: e.pending }))).map(g => {
-        const cards = g.items.map(e => {
-          let c = '<div class="card">' +
-            '<div class="card-title">' + esc(e.examen) + '</div>' +
-            '<p class="card-body">' + esc(e.lugar || '—') + '</p>' +
-            '<div class="row-line">Fecha: ' + esc(e.fechaLabel) + '</div>' +
-            '<div><span class="tag ' + (e.pending ? 'tag-accent' : 'tag-neutral') + '">' + esc(e.estadoLabel) + '</span></div>';
-          const ct = contactos(e);
-          if (ct) c += ct;
-          return c + '</div>';
-        }).join('');
-        return groupWrap(g, 'pendientes', cards, 'Sin exámenes registrados.');
-      }).join('');
-    }
+    const e = state.data.examenes;
+    const conFecha = e.filter(x => ['agendada','por_confirmar_realizacion'].includes(x.estado_actual));
+    const gestionar = e.filter(x => ['agendar_ya','orden_por_vencer','orden_vencida'].includes(x.estado_actual));
+    const resto = e.filter(x => ['en_espera','sin_pendientes'].includes(x.estado_actual));
+    panel.innerHTML =
+      seccion('Con fecha', conFecha.length ? grupoPorPersona(conFecha, renderExamen) : null, 'Ningún examen agendado.',
+        '<button type="button" class="btn btn-primary" onclick="accion(\'nuevoExamen\')">Nuevo examen</button>') +
+      seccion('Por gestionar', gestionar.length ? grupoPorPersona(gestionar, renderExamen) : null, 'Nada pendiente.') +
+      seccion('En seguimiento', resto.length ? grupoPorPersona(resto, renderExamen) : null, 'Sin exámenes en seguimiento.');
 
-  } else if (tab === 'recomendaciones') {
-    html = '<p class="hint">Indicaciones adicionales de cada especialista. Puedes cambiar el estado con el PIN.</p>';
-    html += buildGroups(modelRecomendaciones().map(r => ({ ...r, pending: r.sinIniciar }))).map(g => {
-      const cards = g.items.map(r => {
-        const key = 'recomendaciones-' + r.id;
-        const saving = state.savingId === key ? ' disabled' : '';
-        const opts = ESTADOS_REC.map(est =>
-          '<label class="seg-opt"><input type="radio" name="rec-' + r.id + '" value="' + attr(est) + '"' +
-          ((r.estadoActual || '').toLowerCase() === est.toLowerCase() ? ' checked' : '') + saving +
-          ' onchange="onEstado(' + r.id + ', this.value)"> ' + est + '</label>'
-        ).join('');
-        return '<div class="card' + flashClass(key) + '">' +
-          '<div class="card-kicker">' + esc(r.emitido_por || '—') + '</div>' +
-          '<div class="card-title" style="font-size:15px">' + esc(r.recomendacion) + '</div>' +
-          '<p class="card-body">' + esc(r.accion || '—') + '</p>' +
-          '<div class="seg est-seg">' + opts + '</div>' +
-        '</div>';
-      }).join('');
-      return groupWrap(g, 'sin iniciar', cards, 'Sin recomendaciones registradas.');
-    }).join('');
+  } else {
+    const r = state.data.recomendaciones;
+    panel.innerHTML = seccion('Recomendaciones', r.length ? grupoPorPersona(r, renderRecomendacion) : null, 'Sin recomendaciones.');
   }
-
-  panel.innerHTML = html;
 }
 
-// ─────────────── Pestañas ───────────────
-document.getElementById('tabs').addEventListener('change', (e) => {
+document.getElementById('tabs').addEventListener('change', e => {
   if (e.target.name === 'tab') { state.activeTab = e.target.value; renderPanel(); }
 });
-
-// ─────────────── Marcar (con PIN) ───────────────
-function onToggle(btn) {
-  const tabla = btn.dataset.tabla;
-  const id = Number(btn.dataset.id);
-  const campo = btn.dataset.campo;
-  const valorActual = btn.dataset.valor === '1';
-  state.pendingAction = { kind: 'campo', tabla, id, campo, nuevoValor: !valorActual };
-  if (state.pinSession) doPersist(state.pinSession); else openPin();
-}
-
-function onEstado(id, estado) {
-  const r = state.data.recomendaciones.find(x => x.id === id);
-  if (r && (r.estado || 'Sin iniciar') === estado) return; // sin cambio
-  state.pendingAction = { kind: 'estado', tabla: 'recomendaciones', id, nuevoValor: estado };
-  if (state.pinSession) doPersist(state.pinSession); else openPin();
-}
+document.getElementById('retry').onclick = load;
 
 const pinModal = document.getElementById('pin-modal');
 const pinInput = document.getElementById('pin-input');
 const pinError = document.getElementById('pin-error');
-
 function openPin(msg) {
   pinError.style.display = msg ? 'block' : 'none';
   pinError.textContent = msg || '';
@@ -619,78 +610,217 @@ function openPin(msg) {
   setTimeout(() => pinInput.focus(), 50);
 }
 function closePin() { pinModal.classList.remove('open'); }
-
-document.getElementById('pin-cancel').onclick = () => { closePin(); state.pendingAction = null; renderPanel(); };
+document.getElementById('pin-cancel').onclick = () => { closePin(); state.pendingAction = null; };
 document.getElementById('pin-ok').onclick = confirmPin;
 pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmPin(); });
-
 function confirmPin() {
   const pin = pinInput.value.trim();
   if (!pin) { pinError.style.display = 'block'; pinError.textContent = 'Escribe el PIN.'; return; }
   closePin();
-  doPersist(pin);
+  ejecutar(pin);
 }
 
-async function doPersist(pin) {
-  const t = state.pendingAction;
-  if (!t) return;
-  state.savingId = t.tabla + '-' + t.id;
-  renderPanel();
-  let url, body;
-  if (t.kind === 'estado') {
-    url = '/rpc/marcar_estado_recomendacion';
-    body = { p_id: t.id, p_estado: t.nuevoValor, p_pin: pin };
-  } else {
-    url = '/rpc/marcar_campo';
-    body = { p_tabla: t.tabla, p_id: t.id, p_campo: t.campo, p_valor: t.nuevoValor, p_pin: pin };
-  }
+const formModal = document.getElementById('form-modal');
+const formError = document.getElementById('form-error');
+document.getElementById('form-cancel').onclick = () => { formModal.classList.remove('open'); state.formSubmit = null; };
+document.getElementById('form-ok').onclick = () => {
+  const vals = {};
+  formModal.querySelectorAll('[data-campo]').forEach(el => { vals[el.dataset.campo] = el.value.trim(); });
+  const err = state.formSubmit ? state.formSubmit.validar(vals) : null;
+  if (err) { formError.style.display = 'block'; formError.textContent = err; return; }
+  formError.style.display = 'none';
+  const fn = state.formSubmit.armar(vals);
+  formModal.classList.remove('open');
+  state.formSubmit = null;
+  pedirPin(fn);
+};
+
+function abrirForm(titulo, sub, campos, validar, armar) {
+  document.getElementById('form-title').textContent = titulo;
+  document.getElementById('form-sub').textContent = sub || '';
+  formError.style.display = 'none';
+  document.getElementById('form-fields').innerHTML = campos.map(c => {
+    if (c.tipo === 'select') {
+      const opts = c.opciones.map(o => {
+        const [v, t] = Array.isArray(o) ? o : [o, o];
+        return '<option value="' + attr(v) + '"' + (c.valor === v ? ' selected' : '') + '>' + esc(t || v) + '</option>';
+      }).join('');
+      return '<div class="field"><label>' + esc(c.label) + '</label><select class="select" data-campo="' + attr(c.campo) + '">' + opts + '</select></div>';
+    }
+    return '<div class="field"><label>' + esc(c.label) + '</label>' +
+      '<input class="input" type="' + (c.tipo || 'text') + '" data-campo="' + attr(c.campo) + '"' +
+      (c.valor ? ' value="' + attr(c.valor) + '"' : '') +
+      (c.placeholder ? ' placeholder="' + attr(c.placeholder) + '"' : '') + '>' +
+      (c.hint ? '<span class="hint">' + esc(c.hint) + '</span>' : '') + '</div>';
+  }).join('');
+  state.formSubmit = { validar: validar || (() => null), armar };
+  formModal.classList.add('open');
+}
+
+function pedirPin(fn) {
+  state.pendingAction = fn;
+  if (state.pinSession) ejecutar(state.pinSession); else openPin();
+}
+
+async function ejecutar(pin) {
+  const fn = state.pendingAction;
+  if (!fn) return;
+  const { rpc, args, key, mensaje } = fn;
+  state.savingKey = key; renderPanel();
   try {
-    const r = await fetch(REST + url, {
+    const r = await fetch(REST + '/rpc/' + rpc, {
       method: 'POST',
       headers: Object.assign({ 'Content-Type': 'application/json' }, HEADERS),
-      body: JSON.stringify(body)
+      body: JSON.stringify(Object.assign({}, args, { p_pin: pin }))
     });
-    if (r.status === 400) {
-      const err = await r.json().catch(() => ({}));
-      if ((err.message || '').toLowerCase().includes('pin')) {
-        state.pinSession = null; state.savingId = null;
-        renderPanel();
-        openPin('PIN incorrecto. Intenta de nuevo.');
-        return;
-      }
-      throw new Error(err.message || 'Error');
+    if (!r.ok) {
+      const txt = await r.text();
+      state.savingKey = null;
+      if (/PIN incorrecto/i.test(txt)) { state.pinSession = null; openPin('El PIN no es correcto.'); return; }
+      renderPanel(); toast('No se pudo guardar. Intenta de nuevo.'); return;
     }
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-
-    const fila = state.data[t.tabla].find(x => x.id === t.id);
-    if (fila) { if (t.kind === 'estado') fila.estado = t.nuevoValor; else fila[t.campo] = t.nuevoValor; }
-    const key = t.tabla + '-' + t.id;
-    const flash = t.kind === 'estado' ? true : !!t.nuevoValor;
     state.pinSession = pin;
     state.pendingAction = null;
-    state.savingId = null;
-    state.justDoneKey = flash ? key : null;
-    renderCounters();
-    renderPanel();
-    if (flash) setTimeout(() => { if (state.justDoneKey === key) { state.justDoneKey = null; renderPanel(); } }, 1300);
+    state.savingKey = null;
+    state.justDoneKey = key;
+    toast(mensaje || 'Guardado');
+    await load();
+    setTimeout(() => { state.justDoneKey = null; renderPanel(); }, 1800);
   } catch (e) {
-    state.savingId = null;
-    renderPanel();
-    toast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
+    state.savingKey = null; renderPanel();
+    toast('No se pudo guardar. Revisa tu conexión.');
   }
 }
 
-// ─────────────── Toast ───────────────
-let toastTimer = null;
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+const personasOpts = () => state.data.personas.map(p => p.nombre);
+
+function accion(cmd) {
+  const [op, a, b] = cmd.split(':');
+
+  if (op === 'asistir') {
+    abrirForm('Confirmar asistencia', '¿Qué día fue la consulta?',
+      [{ campo: 'fecha', label: 'Fecha', tipo: 'date', valor: hoyISO() }],
+      v => v.fecha ? null : 'Escoge la fecha.',
+      v => ({ rpc: 'marcar_asistencia', args: { p_consulta_id: Number(a), p_fecha: v.fecha }, key: cmd, mensaje: 'Consulta marcada como asistida' }));
+
+  } else if (op === 'agendarCita') {
+    abrirForm('Agendar cita', 'Escribe la fecha y la hora que te dieron.',
+      [{ campo: 'fecha', label: 'Fecha', tipo: 'date' }, { campo: 'hora', label: 'Hora', tipo: 'time' }],
+      v => v.fecha ? null : 'Escoge la fecha.',
+      v => ({ rpc: 'agendar_consulta', args: { p_consulta_id: Number(a), p_fecha: v.fecha, p_hora: v.hora || null }, key: cmd, mensaje: 'Cita agendada' }));
+
+  } else if (op === 'cancelarCita') {
+    pedirPin({ rpc: 'cancelar_consulta', args: { p_consulta_id: Number(a) }, key: cmd, mensaje: 'Cita cancelada' });
+
+  } else if (op === 'llamadaCita') {
+    pedirPin({ rpc: 'marcar_llamada_agendamiento', args: { p_consulta_id: Number(a), p_valor: b === '1' }, key: cmd, mensaje: 'Listo' });
+
+  } else if (op === 'nuevaConsulta') {
+    abrirForm('Pedir cita', 'Se agrega a la lista de pendientes por agendar.',
+      [{ campo: 'motivo', label: 'Motivo', placeholder: 'Entrega de resultados' },
+       { campo: 'fecha', label: 'Fecha (si ya la tienes)', tipo: 'date' },
+       { campo: 'hora', label: 'Hora', tipo: 'time' }],
+      null,
+      v => ({ rpc: 'crear_consulta', args: { p_especialista_id: Number(a), p_fecha: v.fecha || null, p_hora: v.hora || null, p_motivo: v.motivo || null }, key: cmd, mensaje: 'Cita registrada' }));
+
+  } else if (op === 'contactoCita') {
+    const c = state.data.citas.find(x => x.especialista_id === Number(a)) || {};
+    abrirForm('Datos de contacto', esc(c.especialidad || ''),
+      [{ campo: 'prestador', label: 'Nombre del médico o IPS', valor: c.prestador || '' },
+       { campo: 'direccion', label: 'Dirección', valor: c.direccion || '' },
+       { campo: 'telefono', label: 'Teléfono', valor: c.telefono_agendar || '' },
+       { campo: 'celular', label: 'Celular', valor: c.celular_agendar || '' },
+       { campo: 'correo', label: 'Correo', valor: c.correo_agendar || '' }],
+      null,
+      v => ({ rpc: 'actualizar_contacto_especialista', args: { p_especialista_id: Number(a), p_prestador: v.prestador || null, p_direccion: v.direccion || null, p_telefono: v.telefono || null, p_celular: v.celular || null, p_correo: v.correo || null }, key: cmd, mensaje: 'Contacto actualizado' }));
+
+  } else if (op === 'nuevoEspecialista') {
+    abrirForm('Nuevo especialista', 'Para citas que no llegaron con una remisión en PDF.',
+      [{ campo: 'persona', label: 'Persona', tipo: 'select', opciones: personasOpts() },
+       { campo: 'especialidad', label: 'Especialidad', placeholder: 'Ortodoncista' },
+       { campo: 'prestador', label: 'Médico o IPS' },
+       { campo: 'frecuencia', label: 'Control cada', tipo: 'select', opciones: FRECUENCIAS.map(f => [f[0], f[0] || 'No se repite']) },
+       { campo: 'direccion', label: 'Dirección' },
+       { campo: 'telefono', label: 'Teléfono' },
+       { campo: 'fecha', label: '¿Ya tiene cita?', tipo: 'date', hint: 'Vacío = queda por agendar' },
+       { campo: 'hora', label: 'Hora', tipo: 'time' }],
+      v => v.especialidad ? null : 'Escribe la especialidad.',
+      v => {
+        const f = FRECUENCIAS.find(x => x[0] === v.frecuencia);
+        return { rpc: 'crear_especialista', args: { p_persona: v.persona, p_especialidad: v.especialidad, p_prestador: v.prestador || null, p_frecuencia: v.frecuencia || null, p_periodicidad_dias: f && f[1] ? Number(f[1]) : null, p_direccion: v.direccion || null, p_telefono: v.telefono || null, p_celular: null, p_correo: null, p_fecha: v.fecha || null, p_hora: v.hora || null, p_motivo: null, p_nota: null }, key: cmd, mensaje: 'Especialista registrado' };
+      });
+
+  } else if (op === 'realizado') {
+    abrirForm('Confirmar examen', '¿Qué día te lo hiciste?',
+      [{ campo: 'fecha', label: 'Fecha', tipo: 'date', valor: hoyISO() }],
+      v => v.fecha ? null : 'Escoge la fecha.',
+      v => ({ rpc: 'marcar_realizado', args: { p_toma_id: Number(a), p_fecha: v.fecha }, key: cmd, mensaje: 'Examen marcado como realizado' }));
+
+  } else if (op === 'agendarToma') {
+    abrirForm('Agendar examen', 'Escribe la fecha y la hora que te dieron.',
+      [{ campo: 'fecha', label: 'Fecha', tipo: 'date' }, { campo: 'hora', label: 'Hora', tipo: 'time' }],
+      v => v.fecha ? null : 'Escoge la fecha.',
+      v => ({ rpc: 'agendar_toma', args: { p_toma_id: Number(a), p_fecha: v.fecha, p_hora: v.hora || null }, key: cmd, mensaje: 'Examen agendado' }));
+
+  } else if (op === 'cancelarToma') {
+    pedirPin({ rpc: 'cancelar_toma', args: { p_toma_id: Number(a) }, key: cmd, mensaje: 'Examen cancelado' });
+
+  } else if (op === 'llamadaToma') {
+    pedirPin({ rpc: 'marcar_llamada_toma', args: { p_toma_id: Number(a), p_valor: b === '1' }, key: cmd, mensaje: 'Listo' });
+
+  } else if (op === 'nuevaToma') {
+    abrirForm('Nueva orden', 'Otra orden para el mismo examen.',
+      [{ campo: 'valido_hasta', label: 'Orden válida hasta', tipo: 'date' },
+       { campo: 'fecha', label: '¿Ya tiene cita?', tipo: 'date' },
+       { campo: 'hora', label: 'Hora', tipo: 'time' }],
+      null,
+      v => ({ rpc: 'crear_toma', args: { p_paraclinico_id: Number(a), p_fecha: v.fecha || null, p_hora: v.hora || null, p_valido_hasta: v.valido_hasta || null, p_motivo: null }, key: cmd, mensaje: 'Orden registrada' }));
+
+  } else if (op === 'contactoExamen') {
+    const e = state.data.examenes.find(x => x.paraclinico_id === Number(a)) || {};
+    abrirForm('Datos de contacto', esc(e.examen || ''),
+      [{ campo: 'lugar', label: 'Lugar', valor: e.lugar || '' },
+       { campo: 'direccion', label: 'Dirección', valor: e.direccion || '' },
+       { campo: 'telefono', label: 'Teléfono', valor: e.telefono_agendar || '' },
+       { campo: 'celular', label: 'Celular', valor: e.celular_agendar || '' },
+       { campo: 'correo', label: 'Correo', valor: e.correo_agendar || '' }],
+      null,
+      v => ({ rpc: 'actualizar_contacto_paraclinico', args: { p_paraclinico_id: Number(a), p_lugar: v.lugar || null, p_direccion: v.direccion || null, p_telefono: v.telefono || null, p_celular: v.celular || null, p_correo: v.correo || null }, key: cmd, mensaje: 'Contacto actualizado' }));
+
+  } else if (op === 'nuevoExamen') {
+    abrirForm('Nuevo examen', 'Para exámenes que no llegaron con una orden en PDF.',
+      [{ campo: 'persona', label: 'Persona', tipo: 'select', opciones: personasOpts() },
+       { campo: 'examen', label: 'Examen', placeholder: 'Hemograma completo' },
+       { campo: 'tipo', label: 'Tipo', tipo: 'select', opciones: [['rutina','Rutina (laboratorio)'], ['especial','Especial']] },
+       { campo: 'lugar', label: 'Lugar' },
+       { campo: 'telefono', label: 'Teléfono' },
+       { campo: 'frecuencia', label: 'Se repite cada', tipo: 'select', opciones: FRECUENCIAS.map(f => [f[0], f[0] || 'No se repite']) },
+       { campo: 'valido_hasta', label: 'Orden válida hasta', tipo: 'date', hint: 'Vacío si no hay orden' },
+       { campo: 'fecha', label: '¿Ya tiene cita?', tipo: 'date' },
+       { campo: 'hora', label: 'Hora', tipo: 'time' }],
+      v => v.examen ? null : 'Escribe el nombre del examen.',
+      v => {
+        const f = FRECUENCIAS.find(x => x[0] === v.frecuencia);
+        return { rpc: 'crear_paraclinico', args: { p_persona: v.persona, p_examen: v.examen, p_tipo: v.tipo, p_lugar: v.lugar || null, p_direccion: null, p_telefono: v.telefono || null, p_celular: null, p_correo: null, p_periodicidad_dias: f && f[1] ? Number(f[1]) : null, p_valido_hasta: v.valido_hasta || null, p_fecha: v.fecha || null, p_hora: v.hora || null, p_nota: null }, key: cmd, mensaje: 'Examen registrado' };
+      });
+
+  } else if (op === 'reclamar') {
+    abrirForm('Confirmar reclamo', '¿Qué día lo reclamaste?',
+      [{ campo: 'fecha', label: 'Fecha', tipo: 'date', valor: hoyISO() }],
+      v => v.fecha ? null : 'Escoge la fecha.',
+      v => ({ rpc: 'marcar_reclamo', args: { p_tratamiento_id: Number(a), p_fecha: v.fecha }, key: cmd, mensaje: 'Medicamento marcado como reclamado' }));
+
+  } else if (op === 'finalizarMed') {
+    pedirPin({ rpc: 'finalizar_tratamiento', args: { p_tratamiento_id: Number(a) }, key: cmd, mensaje: 'Tratamiento finalizado' });
+
+  } else if (op === 'renovarMed') {
+    pedirPin({ rpc: 'solicitar_consulta_medicamento', args: { p_tratamiento_id: Number(a) }, key: cmd, mensaje: 'Cita de renovación agregada' });
+
+  } else if (op === 'estadoRec') {
+    pedirPin({ rpc: 'marcar_estado_recomendacion', args: { p_id: Number(a), p_estado: b }, key: cmd, mensaje: 'Estado actualizado' });
+  }
 }
 
-// ─────────────── Inicio ───────────────
 load();
 </script>
 </body>
